@@ -289,6 +289,7 @@
     </div>
     <span class="eyebrow">Web studio · Lagos, Nigeria</span>
     <h1>Websites that work like <span>real apps</span>, built for businesses ready to grow.</h1>
+    <p style="font-style:italic; color:var(--gold-light); font-size:14px; margin-bottom:6px;">"See it before you pay for it — built to grow with you."</p>
     <p>Fast, installable, app-like websites with instant online payment — no app store, no download, no complexity for your customers.</p>
     <div class="hero-ctas">
       <a href="#contact" class="btn-primary">Start with a free preview</a>
@@ -475,8 +476,20 @@
 </section>
 
 <footer>
-  <div class="wrap">© Pleazy Craft — Lagos, Nigeria</div>
+  <div class="wrap">© Pleazy Craft — Lagos, Nigeria &nbsp;·&nbsp; <a href="#" id="retakeTour" style="color:var(--gold-light); text-decoration:underline;">Take the tour</a></div>
 </footer>
+
+<div id="tourOverlay" style="display:none; position:fixed; inset:0; z-index:400; background:rgba(0,0,0,0.75); backdrop-filter:blur(2px);"></div>
+<div id="tourBox" style="display:none; position:fixed; z-index:401; background:var(--forest); border:1px solid var(--gold); border-radius:14px; padding:18px 20px; max-width:280px; box-shadow:0 20px 50px rgba(0,0,0,0.5);">
+  <p id="tourText" style="font-size:13.5px; color:var(--cream); margin-bottom:12px; line-height:1.5;"></p>
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <button id="tourSkip" type="button" style="background:none; border:none; color:var(--muted); font-size:12px; cursor:pointer;">Skip tour</button>
+    <div style="display:flex; align-items:center; gap:10px;">
+      <span id="tourProgress" style="font-size:11px; color:var(--muted);"></span>
+      <button id="tourNext" type="button" style="background:var(--gold); color:var(--ink); border:none; padding:6px 14px; border-radius:100px; font-size:12.5px; font-weight:600; cursor:pointer;">Next</button>
+    </div>
+  </div>
+</div>
 
 <div id="lightbox" style="display:none; position:fixed; inset:0; z-index:300; align-items:center; justify-content:center; padding:20px; background:rgba(0,0,0,0.92);">
   <button id="lightboxClose" style="position:absolute; top:18px; right:18px; background:none; border:none; color:#fff; font-size:32px; line-height:1; cursor:pointer;">&times;</button>
@@ -624,6 +637,88 @@
       this.querySelector('span').textContent = isOpen ? '+' : '−';
     });
   });
+
+  const tourSteps = [
+    { selector: '.mark', text: "Welcome to Pleazy Craft! Let's quickly show you around — this takes 20 seconds." },
+    { selector: '#build', text: "We build different site types depending on your business — stores, bookings, or app-like experiences." },
+    { selector: '#howBtn', text: "Tap this anytime for the full step-by-step process, including a read-aloud option." },
+    { selector: '#work', text: "Real work we've built, so you can judge the quality yourself before deciding anything." },
+    { selector: '#contact', text: "Ready when you are — message us, call, email, or tap a quick question below." }
+  ];
+  let tourIndex = 0;
+  const tourOverlay = document.getElementById('tourOverlay');
+  const tourBox = document.getElementById('tourBox');
+  const tourText = document.getElementById('tourText');
+  const tourNext = document.getElementById('tourNext');
+  const tourSkip = document.getElementById('tourSkip');
+  const tourProgress = document.getElementById('tourProgress');
+  let tourHighlightEl = null;
+
+  function clearHighlight(){
+    if(tourHighlightEl){
+      tourHighlightEl.style.position = tourHighlightEl.dataset.origPos || '';
+      tourHighlightEl.style.zIndex = '';
+      tourHighlightEl.style.boxShadow = '';
+      tourHighlightEl.style.borderRadius = '';
+    }
+  }
+
+  function showTourStep(i){
+    clearHighlight();
+    const step = tourSteps[i];
+    const el = document.querySelector(step.selector);
+    if(!el){ nextTourStep(); return; }
+    el.scrollIntoView({ behavior:'smooth', block:'center' });
+    setTimeout(() => {
+      const rect = el.getBoundingClientRect();
+      el.dataset.origPos = el.style.position;
+      el.style.position = 'relative';
+      el.style.zIndex = '402';
+      el.style.boxShadow = '0 0 0 6px rgba(217,172,61,0.35), 0 0 0 9999px rgba(0,0,0,0.7)';
+      el.style.borderRadius = '12px';
+      tourHighlightEl = el;
+
+      tourText.textContent = step.text;
+      tourProgress.textContent = (i+1) + ' / ' + tourSteps.length;
+      tourNext.textContent = (i === tourSteps.length - 1) ? 'Done' : 'Next';
+
+      const boxTop = Math.min(window.innerHeight - 160, Math.max(20, rect.bottom + 16));
+      tourBox.style.top = boxTop + 'px';
+      tourBox.style.left = Math.max(16, Math.min(window.innerWidth - 296, rect.left)) + 'px';
+      tourBox.style.display = 'block';
+    }, 350);
+  }
+
+  function nextTourStep(){
+    tourIndex++;
+    if(tourIndex >= tourSteps.length){ endTour(); return; }
+    showTourStep(tourIndex);
+  }
+
+  function startTour(){
+    tourIndex = 0;
+    tourOverlay.style.display = 'block';
+    showTourStep(0);
+  }
+
+  function endTour(){
+    clearHighlight();
+    tourOverlay.style.display = 'none';
+    tourBox.style.display = 'none';
+    localStorage.setItem('pleazyTourSeen', 'true');
+  }
+
+  tourNext.addEventListener('click', nextTourStep);
+  tourSkip.addEventListener('click', endTour);
+  tourOverlay.addEventListener('click', endTour);
+  document.getElementById('retakeTour').addEventListener('click', function(e){
+    e.preventDefault();
+    startTour();
+  });
+
+  if(!localStorage.getItem('pleazyTourSeen')){
+    setTimeout(startTour, 1800);
+  }
 
   const lightbox = document.getElementById('lightbox');
   const lightboxImg = document.getElementById('lightboxImg');
