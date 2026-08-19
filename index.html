@@ -286,6 +286,7 @@
     .hero{padding:90px 0 70px;}
   }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
 
@@ -325,6 +326,8 @@
     <h1>Websites that work like <span>real apps</span>, built for businesses ready to grow.</h1>
     <p class="motto-glow" style="font-style:italic; font-size:15px; margin-bottom:6px; font-weight:600;">"Real work, shown first — built to grow with you."</p>
     <p>Fast, installable, app-like websites with instant online payment — no app store, no download, no complexity for your customers.</p>
+    <div id="phone3d" style="width:100%; max-width:280px; height:340px; margin:32px auto 8px; cursor:grab; touch-action:none;"></div>
+    <p style="font-size:11px; color:var(--muted); margin-top:-4px; margin-bottom:20px;">↔ drag to rotate</p>
     <div class="hero-ctas">
       <a href="#" class="btn-primary" id="heroCta">See how it works & get a preview</a>
       <button type="button" class="btn-ghost" id="howBtn" style="border:1px solid var(--line); background:none; font-family:inherit; cursor:pointer;">See how it works</button>
@@ -931,6 +934,90 @@
       else showGalleryImg(galleryIndex + 1);
     }
   });
+
+  // ---- 3D interactive phone banner ----
+  (function initPhone3D(){
+    const container = document.getElementById('phone3d');
+    if(!container || typeof THREE === 'undefined') return;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(35, container.clientWidth / container.clientHeight, 0.1, 100);
+    camera.position.set(0, 0, 5.5);
+
+    const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    container.appendChild(renderer.domElement);
+
+    const light1 = new THREE.DirectionalLight(0xffffff, 1.4);
+    light1.position.set(2, 3, 4);
+    scene.add(light1);
+    scene.add(new THREE.AmbientLight(0x8899aa, 0.9));
+    const rim = new THREE.PointLight(0xd9ac3d, 1.2, 10);
+    rim.position.set(-3, 2, 2);
+    scene.add(rim);
+
+    const phoneGroup = new THREE.Group();
+    scene.add(phoneGroup);
+
+    // Phone body (rounded box approximation)
+    const bodyGeo = new THREE.BoxGeometry(1.6, 3.2, 0.15);
+    const bodyMat = new THREE.MeshStandardMaterial({ color: 0x111815, metalness:0.7, roughness:0.25 });
+    const body = new THREE.Mesh(bodyGeo, bodyMat);
+    phoneGroup.add(body);
+
+    // Screen with your actual work screenshot as texture
+    const texLoader = new THREE.TextureLoader();
+    const screenGeo = new THREE.PlaneGeometry(1.42, 3.0);
+    const screenMat = new THREE.MeshBasicMaterial({ color: 0x0e2d21 });
+    const screen = new THREE.Mesh(screenGeo, screenMat);
+    screen.position.z = 0.076;
+    phoneGroup.add(screen);
+
+    texLoader.load('work2.jpg', function(tex){
+      tex.colorSpace = THREE.SRGBColorSpace || tex.colorSpace;
+      screenMat.map = tex;
+      screenMat.color.set(0xffffff);
+      screenMat.needsUpdate = true;
+    });
+
+    phoneGroup.rotation.y = -0.4;
+    phoneGroup.rotation.x = 0.08;
+
+    let autoRotate = true;
+    let isDragging = false;
+    let prevX = 0, prevY = 0;
+
+    function onDown(x, y){ isDragging = true; autoRotate = false; prevX = x; prevY = y; container.style.cursor = 'grabbing'; }
+    function onMove(x, y){
+      if(!isDragging) return;
+      const dx = x - prevX, dy = y - prevY;
+      phoneGroup.rotation.y += dx * 0.01;
+      phoneGroup.rotation.x += dy * 0.006;
+      prevX = x; prevY = y;
+    }
+    function onUp(){ isDragging = false; container.style.cursor = 'grab'; }
+
+    container.addEventListener('mousedown', function(e){ onDown(e.clientX, e.clientY); });
+    window.addEventListener('mousemove', function(e){ onMove(e.clientX, e.clientY); });
+    window.addEventListener('mouseup', onUp);
+    container.addEventListener('touchstart', function(e){ const t = e.touches[0]; onDown(t.clientX, t.clientY); }, {passive:true});
+    container.addEventListener('touchmove', function(e){ const t = e.touches[0]; onMove(t.clientX, t.clientY); }, {passive:true});
+    container.addEventListener('touchend', onUp);
+
+    function animatePhone(){
+      requestAnimationFrame(animatePhone);
+      if(autoRotate){ phoneGroup.rotation.y += 0.004; }
+      renderer.render(scene, camera);
+    }
+    animatePhone();
+
+    window.addEventListener('resize', function(){
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    });
+  })();
 
   let deferredInstallPrompt = null;
   const installBtn = document.getElementById('installBtn');
