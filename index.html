@@ -94,10 +94,20 @@
   }
   .mark svg{width:100px; height:auto; filter:drop-shadow(0 0 30px rgba(217,172,61,0.35));}
   @keyframes floatY{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
+  .motto-glow{
+    background:linear-gradient(90deg, var(--gold-light), var(--green), var(--gold), var(--gold-light));
+    background-size:300% auto;
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    animation:mottoShift 6s ease-in-out infinite;
+  }
+  @keyframes mottoShift{0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}}
   .card{transition:transform .3s ease, border-color .3s ease, box-shadow .3s ease;}
   .card:hover{transform:translateY(-6px); box-shadow:0 16px 40px rgba(0,0,0,0.3);}
   .work-card{transition:transform .3s ease;}
   .work-card:hover{transform:translateY(-4px);}
+  .ken-burns-frame{overflow:hidden; border-radius:0;}
+  .ken-burns-frame img{animation:kenBurns 10s ease-in-out infinite alternate;}
+  @keyframes kenBurns{0%{transform:scale(1) translate(0,0);}100%{transform:scale(1.08) translate(-1%,-1%);}}
   .eyebrow{
     display:inline-block;
     font-size:12px;
@@ -197,9 +207,24 @@
     border:1px solid var(--line);
     border-radius:16px;
     padding:28px 24px;
-    transition:transform .25s ease, border-color .25s ease;
+    position:relative;
+    overflow:hidden;
+    transition:transform .4s ease, border-color .25s ease, box-shadow .4s ease;
+    transform-style:preserve-3d;
+    perspective:600px;
   }
-  .card:hover{transform:translateY(-4px); border-color:rgba(217,172,61,0.4);}
+  .card::after{
+    content:'';
+    position:absolute;
+    top:0; right:0;
+    width:0; height:0;
+    border-style:solid;
+    border-width:0 26px 26px 0;
+    border-color:transparent rgba(217,172,61,0.18) transparent transparent;
+    transition:border-width .3s ease;
+  }
+  .card:hover::after{border-width:0 34px 34px 0;}
+  .card:hover{transform:translateY(-6px) rotateX(3deg) rotateY(-2deg); border-color:rgba(217,172,61,0.4); box-shadow:0 20px 45px rgba(0,0,0,0.35);}
   .card .icon{
     width:42px; height:42px;
     display:flex; align-items:center; justify-content:center;
@@ -297,7 +322,7 @@
     </div>
     <span class="eyebrow">Web studio · Lagos, Nigeria</span>
     <h1>Websites that work like <span>real apps</span>, built for businesses ready to grow.</h1>
-    <p style="font-style:italic; color:var(--gold-light); font-size:14px; margin-bottom:6px;">"Real work, shown first — built to grow with you."</p>
+    <p class="motto-glow" style="font-style:italic; font-size:15px; margin-bottom:6px; font-weight:600;">"Real work, shown first — built to grow with you."</p>
     <p>Fast, installable, app-like websites with instant online payment — no app store, no download, no complexity for your customers.</p>
     <div class="hero-ctas">
       <a href="#" class="btn-primary" id="heroCta">See how it works & get a preview</a>
@@ -405,35 +430,35 @@
     </div>
     <div class="work-grid">
       <div class="work-card" data-slot="1">
-        <img src="work1.jpg" alt="Product page" class="zoomable" onerror="this.closest('.work-card').style.display='none'">
+        <div class="ken-burns-frame"><img src="work1.jpg" alt="Product page" class="zoomable" onerror="this.closest('.work-card').style.display='none'"></div>
         <div class="cap"><h4>Product page</h4><p>Ratings, stock, reviews, add to cart</p></div>
       </div>
       <div class="work-card" data-slot="2">
-        <img src="work2.jpg" alt="Cart & checkout" class="zoomable" onerror="this.closest('.work-card').style.display='none'">
+        <div class="ken-burns-frame"><img src="work2.jpg" alt="Cart & checkout" class="zoomable" onerror="this.closest('.work-card').style.display='none'"></div>
         <div class="cap"><h4>Cart & checkout</h4><p>Live totals, theme switcher</p></div>
       </div>
       <div class="work-card" data-slot="3">
-        <img src="work3.jpg" alt="Product detail" class="zoomable" onerror="this.closest('.work-card').style.display='none'">
+        <div class="ken-burns-frame"><img src="work3.jpg" alt="Product detail" class="zoomable" onerror="this.closest('.work-card').style.display='none'"></div>
         <div class="cap"><h4>Product detail</h4><p>Gallery, pricing, chat support</p></div>
       </div>
       <div class="work-card" data-slot="4">
-        <img src="work4.jpg" alt="Admin dashboard" class="zoomable" onerror="this.closest('.work-card').style.display='none'">
+        <div class="ken-burns-frame"><img src="work4.jpg" alt="Admin dashboard" class="zoomable" onerror="this.closest('.work-card').style.display='none'"></div>
         <div class="cap"><h4>Admin dashboard</h4><p>Revenue, orders, product control</p></div>
       </div>
       <div class="work-card" data-slot="5">
-        <img src="work5.jpg" alt="Live order tracking" class="zoomable" onerror="this.closest('.work-card').style.display='none'">
+        <div class="ken-burns-frame"><img src="work5.jpg" alt="Live order tracking" class="zoomable" onerror="this.closest('.work-card').style.display='none'"></div>
         <div class="cap"><h4>Live order tracking</h4><p>Real-time delivery status</p></div>
       </div>
       <div class="work-card" data-slot="6">
-        <img src="work6.jpg" alt="Project photo 6" class="zoomable" onerror="this.closest('.work-card').style.display='none'">
+        <div class="ken-burns-frame"><img src="work6.jpg" alt="Project photo 6" class="zoomable" onerror="this.closest('.work-card').style.display='none'"></div>
         <div class="cap"><h4>Project photo 6</h4><p></p></div>
       </div>
       <div class="work-card" data-slot="7">
-        <img src="work7.jpg" alt="Project photo 7" class="zoomable" onerror="this.closest('.work-card').style.display='none'">
+        <div class="ken-burns-frame"><img src="work7.jpg" alt="Project photo 7" class="zoomable" onerror="this.closest('.work-card').style.display='none'"></div>
         <div class="cap"><h4>Project photo 7</h4><p></p></div>
       </div>
       <div class="work-card" data-slot="8">
-        <img src="work8.jpg" alt="Project photo 8" class="zoomable" onerror="this.closest('.work-card').style.display='none'">
+        <div class="ken-burns-frame"><img src="work8.jpg" alt="Project photo 8" class="zoomable" onerror="this.closest('.work-card').style.display='none'"></div>
         <div class="cap"><h4>Project photo 8</h4><p></p></div>
       </div>
     </div>
@@ -483,6 +508,12 @@
         </div>
       </div>
       <div style="margin-top:16px;">
+        <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;">
+          <button type="button" class="preset-chip" data-q="cost" style="background:rgba(255,255,255,0.05); border:1px solid var(--line); color:var(--cream); font-size:12px; padding:6px 12px; border-radius:100px; cursor:pointer;">💰 Cost</button>
+          <button type="button" class="preset-chip" data-q="timeline" style="background:rgba(255,255,255,0.05); border:1px solid var(--line); color:var(--cream); font-size:12px; padding:6px 12px; border-radius:100px; cursor:pointer;">⏱ Timeline</button>
+          <button type="button" class="preset-chip" data-q="payment" style="background:rgba(255,255,255,0.05); border:1px solid var(--line); color:var(--cream); font-size:12px; padding:6px 12px; border-radius:100px; cursor:pointer;">💳 Payment</button>
+          <button type="button" class="preset-chip" data-q="safe" style="background:rgba(255,255,255,0.05); border:1px solid var(--line); color:var(--cream); font-size:12px; padding:6px 12px; border-radius:100px; cursor:pointer;">🔒 Safety</button>
+        </div>
         <div style="display:flex; gap:8px;">
           <input type="text" id="askInput" placeholder="Or type your own question…" style="flex:1; background:rgba(255,255,255,0.04); border:1px solid var(--line); border-radius:100px; color:var(--cream); padding:10px 16px; font-size:13px; font-family:inherit;">
           <button type="button" id="askSubmit" style="background:var(--gold); color:var(--ink); border:none; border-radius:100px; padding:10px 18px; font-size:13px; font-weight:600; cursor:pointer;">Ask</button>
@@ -651,8 +682,8 @@
     { keywords: ['safe', 'secure', 'bvn', 'nin', 'password', 'trust'], answer: "We never ask for your BVN, NIN, passwords, or bank login — for anything, at any stage." }
   ];
 
-  document.getElementById('askSubmit').addEventListener('click', function(){
-    const input = document.getElementById('askInput').value.toLowerCase().trim();
+  function runAsk(queryText){
+    const input = queryText.toLowerCase().trim();
     const answerBox = document.getElementById('askAnswer');
     if(!input){ return; }
     let match = null;
@@ -665,9 +696,19 @@
     if(match){
       answerBox.textContent = match;
     } else {
-      answerBox.innerHTML = "Good question — we'd rather answer that properly than guess. <a href=\"https://wa.me/2349070911356?text=" + encodeURIComponent(document.getElementById('askInput').value) + "\" style=\"color:var(--gold-light); text-decoration:underline;\">Ask us directly on WhatsApp</a>.";
+      answerBox.innerHTML = "Good question — we'd rather answer that properly than guess. <a href=\"https://wa.me/2349070911356?text=" + encodeURIComponent(queryText) + "\" style=\"color:var(--gold-light); text-decoration:underline;\">Ask us directly on WhatsApp</a>.";
     }
     answerBox.style.display = 'block';
+  }
+
+  document.getElementById('askSubmit').addEventListener('click', function(){
+    runAsk(document.getElementById('askInput').value);
+  });
+
+  document.querySelectorAll('.preset-chip').forEach(function(chip){
+    chip.addEventListener('click', function(){
+      runAsk(this.getAttribute('data-q'));
+    });
   });
 
   document.querySelectorAll('.faq-q').forEach(function(btn){
@@ -679,6 +720,21 @@
     });
   });
 
+  let autoScrollInterval = null;
+  let isPaused = false;
+
+  function startAutoScroll(){
+    stopAutoScroll();
+    autoScrollInterval = setInterval(function(){
+      if(!isPaused){
+        howModal.scrollTop += 1;
+      }
+    }, 60);
+  }
+  function stopAutoScroll(){
+    if(autoScrollInterval){ clearInterval(autoScrollInterval); autoScrollInterval = null; }
+  }
+
   readAloudBtn.addEventListener('click', function(){
     if(!('speechSynthesis' in window)){
       alert('Read aloud is not supported on this browser.');
@@ -686,15 +742,28 @@
     }
     if(speechSynthesis.speaking){
       speechSynthesis.cancel();
+      stopAutoScroll();
       readAloudBtn.textContent = '🔊 Read aloud';
       return;
     }
     const text = readContent.innerText;
     const utter = new SpeechSynthesisUtterance(text);
     utter.rate = 0.95;
-    utter.onend = function(){ readAloudBtn.textContent = '🔊 Read aloud'; };
+    utter.onend = function(){ readAloudBtn.textContent = '🔊 Read aloud'; stopAutoScroll(); };
     speechSynthesis.speak(utter);
+    startAutoScroll();
     readAloudBtn.textContent = '⏹ Stop';
+  });
+
+  readContent.addEventListener('click', function(){
+    if(!speechSynthesis.speaking && !speechSynthesis.paused) return;
+    if(isPaused){
+      speechSynthesis.resume();
+      isPaused = false;
+    } else {
+      speechSynthesis.pause();
+      isPaused = true;
+    }
   });
 
   document.querySelectorAll('.quick-q').forEach(function(btn){
