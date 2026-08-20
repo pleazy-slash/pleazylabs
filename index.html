@@ -30,6 +30,18 @@
     --muted:#a9bdb3;
     --line:rgba(217,172,61,0.18);
   }
+  body.light-mode{
+    --ink:#faf8f3;
+    --forest:#ffffff;
+    --forest-2:#fbf4e2;
+    --gold:#b8842a;
+    --gold-light:#8a6216;
+    --green:#1f6b4a;
+    --cream:#14231c;
+    --muted:#6b6459;
+    --line:rgba(184,132,42,0.22);
+  }
+  body{transition:background-color .4s ease, color .4s ease;}
   *{box-sizing:border-box; margin:0; padding:0;}
   html{scroll-behavior:smooth;}
   body{
@@ -315,6 +327,7 @@
     </div>
     <div style="display:flex; align-items:center; gap:22px;">
       <a href="#work" style="font-size:14px; font-weight:500; opacity:0.85;">My Work</a>
+      <button type="button" id="themeToggle" style="background:none; border:1px solid var(--line); color:var(--cream); font-size:15px; width:34px; height:34px; border-radius:50%; cursor:pointer;">🌙</button>
       <button type="button" id="installBtn" style="display:none; background:none; border:1px solid var(--gold); color:var(--gold-light); font-size:13px; padding:8px 14px; border-radius:100px; cursor:pointer; font-family:inherit;">📲 Install App</button>
       <a href="#" class="nav-cta" id="navCta">See how it works</a>
     </div>
@@ -750,6 +763,16 @@
     if(autoScrollInterval){ clearInterval(autoScrollInterval); autoScrollInterval = null; }
   }
 
+  ['speedSlider','volumeSlider'].forEach(function(id){
+    document.getElementById(id).addEventListener('input', function(){
+      if(speechSynthesis.speaking){
+        speechSynthesis.cancel();
+        stopAutoScroll();
+        readAloudBtn.click();
+      }
+    });
+  });
+
   readAloudBtn.addEventListener('click', function(){
     if(!('speechSynthesis' in window)){
       alert('Read aloud is not supported on this browser.');
@@ -939,6 +962,22 @@
     }
   });
 
+  // ---- Dark/Light mode toggle ----
+  (function initThemeToggle(){
+    const btn = document.getElementById('themeToggle');
+    const saved = localStorage.getItem('pleazyTheme');
+    if(saved === 'light'){
+      document.body.classList.add('light-mode');
+      btn.textContent = '☀️';
+    }
+    btn.addEventListener('click', function(){
+      document.body.classList.toggle('light-mode');
+      const isLight = document.body.classList.contains('light-mode');
+      btn.textContent = isLight ? '☀️' : '🌙';
+      localStorage.setItem('pleazyTheme', isLight ? 'light' : 'dark');
+    });
+  })();
+
   // ---- Cinematic particle network background ----
   (function initParticleNetwork(){
     const canvas = document.getElementById('bgCanvas');
@@ -1088,17 +1127,52 @@
 
     let autoRotate = true;
     let isDragging = false;
+    let dragMoved = false;
+    let isZoomed = false;
     let prevX = 0, prevY = 0;
+    let downX = 0, downY = 0;
 
-    function onDown(x, y){ isDragging = true; autoRotate = false; prevX = x; prevY = y; container.style.cursor = 'grabbing'; }
+    function playTapSound(){
+      try{
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(700, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 0.08);
+        gain.gain.setValueAtTime(0.12, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(); osc.stop(ctx.currentTime + 0.12);
+      } catch(e){}
+    }
+
+    function vibrateShort(){
+      if('vibrate' in navigator){ navigator.vibrate(15); }
+    }
+
+    function handleTap(){
+      playTapSound();
+      vibrateShort();
+      isZoomed = !isZoomed;
+      camera.position.z = isZoomed ? 3.5 : 5.5;
+      autoRotate = !isZoomed ? true : false;
+    }
+
+    function onDown(x, y){ isDragging = true; dragMoved = false; downX = x; downY = y; prevX = x; prevY = y; container.style.cursor = 'grabbing'; }
     function onMove(x, y){
       if(!isDragging) return;
       const dx = x - prevX, dy = y - prevY;
+      if(Math.abs(x - downX) > 4 || Math.abs(y - downY) > 4){ dragMoved = true; autoRotate = false; }
       phoneGroup.rotation.y += dx * 0.01;
       phoneGroup.rotation.x += dy * 0.006;
       prevX = x; prevY = y;
     }
-    function onUp(){ isDragging = false; container.style.cursor = 'grab'; }
+    function onUp(){
+      isDragging = false;
+      container.style.cursor = 'grab';
+      if(!dragMoved){ handleTap(); }
+    }
 
     container.addEventListener('mousedown', function(e){ onDown(e.clientX, e.clientY); });
     window.addEventListener('mousemove', function(e){ onMove(e.clientX, e.clientY); });
