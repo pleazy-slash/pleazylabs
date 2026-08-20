@@ -343,8 +343,17 @@
     <h1>Websites that work like <span>real apps</span>, built for businesses ready to grow.</h1>
     <p class="motto-glow" style="font-style:italic; font-size:15px; margin-bottom:6px; font-weight:600;">"Real work, shown first — built to grow with you."</p>
     <p>Fast, installable, app-like websites with instant online payment — no app store, no download, no complexity for your customers.</p>
-    <div id="phone3d" style="width:100%; max-width:280px; height:340px; margin:32px auto 8px; cursor:grab; touch-action:none;"></div>
-    <p style="font-size:11px; color:var(--muted); margin-top:-4px; margin-bottom:20px;">↔ drag to rotate</p>
+    <div style="display:flex; gap:10px; justify-content:center; margin-bottom:12px;">
+      <button type="button" id="phonePowerBtn" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:12px; padding:6px 14px; border-radius:100px; cursor:pointer;">⏻ Power</button>
+      <button type="button" id="musicBtn" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:12px; padding:6px 14px; border-radius:100px; cursor:pointer;">🎵 Ambient sound</button>
+    </div>
+    <div id="phone3d" style="width:100%; max-width:280px; height:340px; margin:0 auto 8px; cursor:grab; touch-action:none;"></div>
+    <p style="font-size:11px; color:var(--muted); margin-top:-4px; margin-bottom:32px;">↔ drag to rotate · tap to zoom</p>
+
+    <div style="max-width:400px; margin:0 auto;">
+      <p style="font-size:12px; color:var(--gold-light); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:8px;">How it all connects</p>
+      <div id="stackDiagram" style="width:100%; height:280px; touch-action:none; cursor:grab;"></div>
+    </div>
     <div class="hero-ctas">
       <a href="#" class="btn-primary" id="heroCta">See how it works & get a preview</a>
       <button type="button" class="btn-ghost" id="howBtn" style="border:1px solid var(--line); background:none; font-family:inherit; cursor:pointer;">See how it works</button>
@@ -650,6 +659,21 @@
 </div>
 
 <script>
+  // ---- CRITICAL: hide preloader no matter what happens elsewhere in this script ----
+  window.addEventListener('load', function(){
+    try{
+      const pre = document.getElementById('preloader');
+      setTimeout(() => {
+        pre.style.opacity = '0';
+        setTimeout(() => { pre.style.display = 'none'; }, 500);
+      }, 500);
+    } catch(e){ console.log('preloader hide failed', e); }
+  });
+  // Hard fallback: force-hide after 4s no matter what, in case anything above fails
+  setTimeout(function(){
+    const pre = document.getElementById('preloader');
+    if(pre) pre.style.display = 'none';
+  }, 4000);
   const howBtn = document.getElementById('howBtn');
   const howModal = document.getElementById('howModal');
   const howClose = document.getElementById('howClose');
@@ -964,6 +988,7 @@
 
   // ---- Dark/Light mode toggle ----
   (function initThemeToggle(){
+    try{
     const btn = document.getElementById('themeToggle');
     const saved = localStorage.getItem('pleazyTheme');
     if(saved === 'light'){
@@ -976,10 +1001,12 @@
       btn.textContent = isLight ? '☀️' : '🌙';
       localStorage.setItem('pleazyTheme', isLight ? 'light' : 'dark');
     });
+    } catch(e){ console.log('feature init failed:', e); }
   })();
 
   // ---- Cinematic particle network background ----
   (function initParticleNetwork(){
+    try{
     const canvas = document.getElementById('bgCanvas');
     if(!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -1049,12 +1076,19 @@
       requestAnimationFrame(draw);
     }
     draw();
+    } catch(e){ console.log('feature init failed:', e); }
   })();
 
   // ---- Scroll-triggered cinematic reveal ----
   (function initScrollReveal(){
+    try{
     const revealSelectors = '.card, .flow-item, .work-card, .contact-box, .stack .chip, .section-head';
     const els = document.querySelectorAll(revealSelectors);
+
+    if(!('IntersectionObserver' in window)){
+      return; // elements stay visible by default, no reveal animation, but nothing breaks
+    }
+
     els.forEach(function(el){
       el.style.opacity = '0';
       el.style.transform = 'translateY(28px)';
@@ -1074,10 +1108,12 @@
     }, { threshold: 0.15, rootMargin: '0px 0px -60px 0px' });
 
     els.forEach(function(el){ observer.observe(el); });
+    } catch(e){ console.log('feature init failed:', e); }
   })();
 
   // ---- 3D interactive phone banner ----
   (function initPhone3D(){
+    try{
     const container = document.getElementById('phone3d');
     if(!container || typeof THREE === 'undefined') return;
 
@@ -1193,6 +1229,193 @@
       camera.updateProjectionMatrix();
       renderer.setSize(container.clientWidth, container.clientHeight);
     });
+
+    let phoneOn = true;
+    document.getElementById('phonePowerBtn').addEventListener('click', function(){
+      phoneOn = !phoneOn;
+      container.style.opacity = phoneOn ? '1' : '0.15';
+      container.style.filter = phoneOn ? 'none' : 'grayscale(1) brightness(0.4)';
+      this.textContent = phoneOn ? '⏻ Power' : '⏻ Off';
+      this.style.color = phoneOn ? 'var(--muted)' : 'var(--gold)';
+      autoRotate = phoneOn;
+    });
+    } catch(e){ console.log('feature init failed:', e); }
+  })();
+
+  // ---- Ambient background sound (off by default, user-controlled) ----
+  (function initAmbientMusic(){
+    try{
+    let audioCtx = null;
+    let oscillators = [];
+    let gainNode = null;
+    let isPlaying = false;
+    const btn = document.getElementById('musicBtn');
+
+    function startAmbient(){
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      gainNode = audioCtx.createGain();
+      gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+      gainNode.gain.linearRampToValueAtTime(0.035, audioCtx.currentTime + 1.2);
+      gainNode.connect(audioCtx.destination);
+
+      const notes = [110, 164.81, 220]; // A2, E3, A3 — soft ambient pad
+      notes.forEach(function(freq, i){
+        const osc = audioCtx.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        const lfo = audioCtx.createOscillator();
+        lfo.frequency.value = 0.08 + i*0.02;
+        const lfoGain = audioCtx.createGain();
+        lfoGain.gain.value = 3;
+        lfo.connect(lfoGain);
+        lfoGain.connect(osc.frequency);
+        lfo.start();
+        osc.connect(gainNode);
+        osc.start();
+        oscillators.push(osc, lfo);
+      });
+      isPlaying = true;
+    }
+
+    function stopAmbient(){
+      if(gainNode && audioCtx){
+        gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.6);
+        setTimeout(function(){
+          oscillators.forEach(function(o){ try{ o.stop(); }catch(e){} });
+          oscillators = [];
+          if(audioCtx){ audioCtx.close(); audioCtx = null; }
+        }, 650);
+      }
+      isPlaying = false;
+    }
+
+    btn.addEventListener('click', function(){
+      if(isPlaying){
+        stopAmbient();
+        btn.textContent = '🎵 Ambient sound';
+        btn.style.color = 'var(--muted)';
+      } else {
+        startAmbient();
+        btn.textContent = '⏸ Stop sound';
+        btn.style.color = 'var(--gold)';
+      }
+    });
+    } catch(e){ console.log('feature init failed:', e); }
+  })();
+
+  // ---- 3D "How it connects" stack diagram ----
+  (function initStackDiagram(){
+    try{
+    const container = document.getElementById('stackDiagram');
+    if(!container || typeof THREE === 'undefined') return;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
+    camera.position.set(0, 0, 6.5);
+
+    const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    container.appendChild(renderer.domElement);
+
+    scene.add(new THREE.AmbientLight(0xffffff, 1.2));
+    const dl = new THREE.DirectionalLight(0xd9ac3d, 1);
+    dl.position.set(2,3,4);
+    scene.add(dl);
+
+    const group = new THREE.Group();
+    scene.add(group);
+
+    const nodeData = [
+      { label:'Your\nWebsite', pos:[0, 0, 0], color:0xd9ac3d, core:true },
+      { label:'PWA', pos:[-2.2, 1.3, 0.5], color:0x2f9e6e },
+      { label:'Next.js', pos:[2.2, 1.3, 0.5], color:0x4a90d9 },
+      { label:'Paystack', pos:[-2.2, -1.3, -0.5], color:0xe0a838 },
+      { label:'Render', pos:[2.2, -1.3, -0.5], color:0x9b6fd4 },
+      { label:'Cloudinary', pos:[0, 2.4, -1], color:0x50c8e0 },
+      { label:'WhatsApp', pos:[0, -2.4, -1], color:0x4fce5d }
+    ];
+
+    const nodeMeshes = [];
+    nodeData.forEach(function(n){
+      const geo = new THREE.SphereGeometry(n.core ? 0.42 : 0.28, 20, 20);
+      const mat = new THREE.MeshStandardMaterial({ color: n.color, emissive: n.color, emissiveIntensity: 0.35, roughness:0.4 });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.position.set(n.pos[0], n.pos[1], n.pos[2]);
+      group.add(mesh);
+      nodeMeshes.push(mesh);
+
+      const canvas = document.createElement('canvas');
+      canvas.width = 256; canvas.height = 64;
+      const ctx = canvas.getContext('2d');
+      ctx.font = 'bold 34px sans-serif';
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'center';
+      const lines = n.label.split('\n');
+      lines.forEach(function(line, i){ ctx.fillText(line, 128, 30 + i*36); });
+      const tex = new THREE.CanvasTexture(canvas);
+      const labelMat = new THREE.SpriteMaterial({ map: tex, transparent:true });
+      const sprite = new THREE.Sprite(labelMat);
+      sprite.scale.set(1.4, 0.35, 1);
+      sprite.position.set(n.pos[0], n.pos[1] - (n.core ? 0.7 : 0.55), n.pos[2]);
+      group.add(sprite);
+    });
+
+    // Connection lines from core to each other node, with pulsing "ticking" opacity
+    const lineMats = [];
+    for(let i=1; i<nodeData.length; i++){
+      const points = [
+        new THREE.Vector3(nodeData[0].pos[0], nodeData[0].pos[1], nodeData[0].pos[2]),
+        new THREE.Vector3(nodeData[i].pos[0], nodeData[i].pos[1], nodeData[i].pos[2])
+      ];
+      const geo = new THREE.BufferGeometry().setFromPoints(points);
+      const mat = new THREE.LineBasicMaterial({ color: nodeData[i].color, transparent:true, opacity:0.5 });
+      const line = new THREE.Line(geo, mat);
+      group.add(line);
+      lineMats.push(mat);
+    }
+
+    let autoRotateDiagram = true;
+    let isDraggingDiagram = false;
+    let prevXd = 0, prevYd = 0;
+
+    function onDownD(x,y){ isDraggingDiagram = true; autoRotateDiagram = false; prevXd = x; prevYd = y; }
+    function onMoveD(x,y){
+      if(!isDraggingDiagram) return;
+      group.rotation.y += (x - prevXd) * 0.01;
+      group.rotation.x += (y - prevYd) * 0.006;
+      prevXd = x; prevYd = y;
+    }
+    function onUpD(){ isDraggingDiagram = false; }
+
+    container.addEventListener('mousedown', function(e){ onDownD(e.clientX, e.clientY); });
+    window.addEventListener('mousemove', function(e){ onMoveD(e.clientX, e.clientY); });
+    window.addEventListener('mouseup', onUpD);
+    container.addEventListener('touchstart', function(e){ const t=e.touches[0]; onDownD(t.clientX, t.clientY); }, {passive:true});
+    container.addEventListener('touchmove', function(e){ const t=e.touches[0]; onMoveD(t.clientX, t.clientY); }, {passive:true});
+    container.addEventListener('touchend', onUpD);
+
+    let tick = 0;
+    function animateDiagram(){
+      requestAnimationFrame(animateDiagram);
+      tick += 0.03;
+      if(autoRotateDiagram){ group.rotation.y += 0.003; }
+      lineMats.forEach(function(mat, i){
+        mat.opacity = 0.3 + Math.abs(Math.sin(tick + i)) * 0.4;
+      });
+      nodeMeshes.forEach(function(mesh, i){
+        mesh.material.emissiveIntensity = 0.25 + Math.abs(Math.sin(tick*1.3 + i)) * 0.3;
+      });
+      renderer.render(scene, camera);
+    }
+    animateDiagram();
+
+    window.addEventListener('resize', function(){
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    });
+    } catch(e){ console.log('feature init failed:', e); }
   })();
 
   let deferredInstallPrompt = null;
@@ -1222,14 +1445,6 @@
       navigator.serviceWorker.register('sw.js').catch(function(err){ console.log('SW failed:', err); });
     });
   }
-
-  window.addEventListener('load', function(){
-    const pre = document.getElementById('preloader');
-    setTimeout(() => {
-      pre.style.opacity = '0';
-      setTimeout(() => { pre.style.display = 'none'; }, 500);
-    }, 500);
-  });
 
   const waBtn = document.getElementById('waBtn');
   waBtn.addEventListener('click', function(e){
