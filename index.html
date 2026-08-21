@@ -21,6 +21,7 @@
 <style>
   :root{
     --ink:#07130f;
+    --ink-rgb:7,19,15;
     --forest:#0e2d21;
     --forest-2:#123a2b;
     --gold:#d9ac3d;
@@ -32,6 +33,7 @@
   }
   body.light-mode{
     --ink:#faf8f3;
+    --ink-rgb:250,248,243;
     --forest:#ffffff;
     --forest-2:#fbf4e2;
     --gold:#b8842a;
@@ -61,7 +63,7 @@
   /* Nav */
   nav{
     position:sticky; top:0; z-index:50;
-    background:rgba(7,19,15,0.85);
+    background:rgba(var(--ink-rgb),0.85);
     backdrop-filter:blur(10px);
     border-bottom:1px solid var(--line);
   }
@@ -106,6 +108,8 @@
   }
   .mark svg{width:100px; height:auto; filter:drop-shadow(0 0 30px rgba(217,172,61,0.35));}
   @keyframes floatY{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
+  #projectorBeam{animation:beamPulse 1.4s ease-in-out infinite;}
+  @keyframes beamPulse{0%,100%{opacity:0.5;}50%{opacity:1;}}
   .motto-glow{
     background:linear-gradient(90deg, var(--gold-light), var(--green), var(--gold), var(--gold-light));
     background-size:300% auto;
@@ -345,14 +349,24 @@
     <p>Fast, installable, app-like websites with instant online payment — no app store, no download, no complexity for your customers.</p>
     <div style="display:flex; gap:10px; justify-content:center; margin-bottom:12px;">
       <button type="button" id="phonePowerBtn" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:12px; padding:6px 14px; border-radius:100px; cursor:pointer;">⏻ Power</button>
-      <button type="button" id="musicBtn" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:12px; padding:6px 14px; border-radius:100px; cursor:pointer;">🎵 Ambient sound</button>
+      <button type="button" id="musicBtn" title="Tap to play/pause, double-tap to change track" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:12px; padding:6px 14px; border-radius:100px; cursor:pointer;">🎵 Calm</button>
     </div>
-    <div id="phone3d" style="width:100%; max-width:280px; height:340px; margin:0 auto 8px; cursor:grab; touch-action:none;"></div>
-    <p style="font-size:11px; color:var(--muted); margin-top:-4px; margin-bottom:32px;">↔ drag to rotate · tap to zoom</p>
+    <div id="phone3d" style="width:100%; max-width:360px; height:440px; margin:0 auto 8px; cursor:grab; touch-action:pan-y;"></div>
+    <div style="display:flex; gap:8px; justify-content:center; margin-bottom:8px;">
+      <button type="button" id="rotateToggleBtn" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:16px; width:36px; height:36px; border-radius:50%; cursor:pointer;">⏸</button>
+      <button type="button" id="zoomOutBtn" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:16px; width:36px; height:36px; border-radius:50%; cursor:pointer;">−</button>
+      <button type="button" id="zoomInBtn" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:16px; width:36px; height:36px; border-radius:50%; cursor:pointer;">+</button>
+    </div>
+    <p style="font-size:11px; color:var(--muted); margin-top:-4px; margin-bottom:16px;">↔ drag to rotate · tap to zoom</p>
+    <div style="text-align:center; margin-bottom:8px;">
+      <button type="button" id="projectBtn" style="background:none; border:1px solid var(--gold); color:var(--gold-light); font-size:12px; padding:7px 16px; border-radius:100px; cursor:pointer;">📽️ Project the diagram</button>
+    </div>
+    <div id="projectorBeam" style="display:none; width:2px; height:40px; margin:0 auto; background:linear-gradient(to bottom, var(--gold), transparent); box-shadow:0 0 12px 2px var(--gold);"></div>
 
     <div style="max-width:400px; margin:0 auto;">
       <p style="font-size:12px; color:var(--gold-light); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:8px;">How it all connects</p>
-      <div id="stackDiagram" style="width:100%; height:280px; touch-action:none; cursor:grab;"></div>
+      <div id="stackDiagram" style="width:100%; height:280px; touch-action:pan-y; cursor:grab;"></div>
+      <button type="button" id="diagramNarrateBtn" style="margin-top:10px; background:none; border:1px solid var(--line); color:var(--muted); font-size:12px; padding:6px 14px; border-radius:100px; cursor:pointer;">🔊 Explain this diagram</button>
     </div>
     <div class="hero-ctas">
       <a href="#" class="btn-primary" id="heroCta">See how it works & get a preview</a>
@@ -591,13 +605,15 @@
       <span class="tag">Learn more</span>
       <button id="readAloudBtn" type="button" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:12px; padding:5px 10px; border-radius:100px; cursor:pointer; white-space:nowrap;">🔊 Read aloud</button>
     </div>
-    <div style="display:flex; gap:16px; align-items:center; margin-bottom:16px; padding:8px 10px; background:rgba(255,255,255,0.03); border-radius:10px;">
-      <label style="font-size:11px; color:var(--muted); display:flex; align-items:center; gap:6px; flex:1;">🔉 Speed
-        <input type="range" id="speedSlider" min="0.5" max="1.5" step="0.1" value="0.95" style="flex:1; accent-color:var(--gold);">
-      </label>
-      <label style="font-size:11px; color:var(--muted); display:flex; align-items:center; gap:6px; flex:1;">🔊 Volume
-        <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="1" style="flex:1; accent-color:var(--gold);">
-      </label>
+    <div style="margin-bottom:16px; padding:10px 12px; background:rgba(255,255,255,0.03); border-radius:10px;">
+      <div style="margin-bottom:10px;">
+        <label style="font-size:11px; color:var(--muted); display:block; margin-bottom:4px;">🔉 Speed</label>
+        <input type="range" id="speedSlider" min="0.5" max="1.5" step="0.1" value="0.95" style="width:100%; accent-color:var(--gold);">
+      </div>
+      <div>
+        <label style="font-size:11px; color:var(--muted); display:block; margin-bottom:4px;">🔊 Volume</label>
+        <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="1" style="width:100%; accent-color:var(--gold);">
+      </div>
     </div>
     <h2 style="font-size:21px; font-weight:600; margin-bottom:18px;">What building with us actually means.</h2>
 
@@ -812,6 +828,15 @@
     const utter = new SpeechSynthesisUtterance(text);
     utter.rate = parseFloat(document.getElementById('speedSlider').value);
     utter.volume = parseFloat(document.getElementById('volumeSlider').value);
+
+    // Pick the calmest, most natural-sounding available voice
+    const voices = speechSynthesis.getVoices();
+    const preferredNames = ['Google UK English Female', 'Google US English', 'Samantha', 'Karen', 'Natural'];
+    let chosenVoice = voices.find(function(v){ return preferredNames.some(function(name){ return v.name.includes(name); }); });
+    if(!chosenVoice){ chosenVoice = voices.find(function(v){ return v.lang === 'en-US' || v.lang === 'en-GB'; }); }
+    if(chosenVoice){ utter.voice = chosenVoice; }
+    utter.pitch = 0.95;
+
     utter.onstart = function(){ startAutoScroll(); };
     utter.onend = function(){ readAloudBtn.textContent = '🔊 Read aloud'; stopAutoScroll(); };
     speechSynthesis.speak(utter);
@@ -1151,11 +1176,41 @@
     screen.position.z = 0.076;
     phoneGroup.add(screen);
 
-    texLoader.load('work2.jpg', function(tex){
-      tex.colorSpace = THREE.SRGBColorSpace || tex.colorSpace;
-      screenMat.map = tex;
-      screenMat.color.set(0xffffff);
-      screenMat.needsUpdate = true;
+    const screenImages = ['work1.jpg','work2.jpg','work3.jpg','work4.jpg','work5.jpg'];
+    let screenImgIndex = 1; // start on work2 like before
+    let isProjecting = false;
+    function loadScreenImage(i){
+      if(isProjecting) return;
+      texLoader.load(screenImages[i], function(tex){
+        tex.colorSpace = THREE.SRGBColorSpace || tex.colorSpace;
+        screenMat.map = tex;
+        screenMat.color.set(0xffffff);
+        screenMat.needsUpdate = true;
+      });
+    }
+    loadScreenImage(screenImgIndex);
+    setInterval(function(){
+      screenImgIndex = (screenImgIndex + 1) % screenImages.length;
+      loadScreenImage(screenImgIndex);
+    }, 4000);
+
+    const diagramRenderTarget = new THREE.WebGLRenderTarget(512, 512);
+
+    document.getElementById('projectBtn').addEventListener('click', function(){
+      isProjecting = !isProjecting;
+      const beam = document.getElementById('projectorBeam');
+      if(isProjecting){
+        this.textContent = '📽️ Stop projecting';
+        this.style.background = 'var(--gold)';
+        this.style.color = 'var(--ink)';
+        beam.style.display = 'block';
+      } else {
+        this.textContent = '📽️ Project the diagram';
+        this.style.background = 'none';
+        this.style.color = 'var(--gold-light)';
+        beam.style.display = 'none';
+        loadScreenImage(screenImgIndex);
+      }
     });
 
     phoneGroup.rotation.y = -0.4;
@@ -1195,6 +1250,19 @@
       autoRotate = !isZoomed ? true : false;
     }
 
+    const rotateToggleBtn = document.getElementById('rotateToggleBtn');
+    rotateToggleBtn.addEventListener('click', function(){
+      autoRotate = !autoRotate;
+      rotateToggleBtn.textContent = autoRotate ? '⏸' : '▶';
+    });
+
+    document.getElementById('zoomInBtn').addEventListener('click', function(){
+      camera.position.z = Math.max(2.5, camera.position.z - 0.6);
+    });
+    document.getElementById('zoomOutBtn').addEventListener('click', function(){
+      camera.position.z = Math.min(8, camera.position.z + 0.6);
+    });
+
     function onDown(x, y){ isDragging = true; dragMoved = false; downX = x; downY = y; prevX = x; prevY = y; container.style.cursor = 'grabbing'; }
     function onMove(x, y){
       if(!isDragging) return;
@@ -1220,6 +1288,15 @@
     function animatePhone(){
       requestAnimationFrame(animatePhone);
       if(autoRotate){ phoneGroup.rotation.y += 0.004; }
+
+      if(isProjecting && window.__pleazyDiagramScene && window.__pleazyDiagramCamera){
+        renderer.setRenderTarget(diagramRenderTarget);
+        renderer.render(window.__pleazyDiagramScene, window.__pleazyDiagramCamera);
+        renderer.setRenderTarget(null);
+        screenMat.map = diagramRenderTarget.texture;
+        screenMat.needsUpdate = true;
+      }
+
       renderer.render(scene, camera);
     }
     animatePhone();
@@ -1242,24 +1319,30 @@
     } catch(e){ console.log('feature init failed:', e); }
   })();
 
-  // ---- Ambient background sound (off by default, user-controlled) ----
+  // ---- Ambient background sound (off by default, user-controlled, multiple tracks) ----
   (function initAmbientMusic(){
     try{
     let audioCtx = null;
     let oscillators = [];
     let gainNode = null;
     let isPlaying = false;
+    let trackIndex = 0;
     const btn = document.getElementById('musicBtn');
+
+    const tracks = [
+      { name: 'Calm', notes: [110, 164.81, 220] },        // A2, E3, A3
+      { name: 'Warm', notes: [130.81, 196, 261.63] },      // C3, G3, C4
+      { name: 'Deep', notes: [98, 146.83, 196] }           // G2, D3, G3
+    ];
 
     function startAmbient(){
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       gainNode = audioCtx.createGain();
       gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-      gainNode.gain.linearRampToValueAtTime(0.035, audioCtx.currentTime + 1.2);
+      gainNode.gain.linearRampToValueAtTime(0.09, audioCtx.currentTime + 1.2);
       gainNode.connect(audioCtx.destination);
 
-      const notes = [110, 164.81, 220]; // A2, E3, A3 — soft ambient pad
-      notes.forEach(function(freq, i){
+      tracks[trackIndex].notes.forEach(function(freq, i){
         const osc = audioCtx.createOscillator();
         osc.type = 'sine';
         osc.frequency.value = freq;
@@ -1289,16 +1372,25 @@
       isPlaying = false;
     }
 
+    function updateBtnLabel(){
+      btn.textContent = isPlaying ? ('⏸ ' + tracks[trackIndex].name) : ('🎵 ' + tracks[trackIndex].name);
+      btn.style.color = isPlaying ? 'var(--gold)' : 'var(--muted)';
+    }
+
     btn.addEventListener('click', function(){
       if(isPlaying){
         stopAmbient();
-        btn.textContent = '🎵 Ambient sound';
-        btn.style.color = 'var(--muted)';
       } else {
         startAmbient();
-        btn.textContent = '⏸ Stop sound';
-        btn.style.color = 'var(--gold)';
       }
+      updateBtnLabel();
+    });
+
+    btn.addEventListener('dblclick', function(e){
+      e.preventDefault();
+      trackIndex = (trackIndex + 1) % tracks.length;
+      if(isPlaying){ stopAmbient(); startAmbient(); }
+      updateBtnLabel();
     });
     } catch(e){ console.log('feature init failed:', e); }
   })();
@@ -1310,8 +1402,12 @@
     if(!container || typeof THREE === 'undefined') return;
 
     const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0e2d21);
     const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
     camera.position.set(0, 0, 6.5);
+
+    window.__pleazyDiagramScene = scene;
+    window.__pleazyDiagramCamera = camera;
 
     const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
     renderer.setSize(container.clientWidth, container.clientHeight);
@@ -1377,16 +1473,46 @@
 
     let autoRotateDiagram = true;
     let isDraggingDiagram = false;
+    let dragMovedD = false;
+    let isZoomedD = false;
+    let downXd = 0, downYd = 0;
     let prevXd = 0, prevYd = 0;
 
-    function onDownD(x,y){ isDraggingDiagram = true; autoRotateDiagram = false; prevXd = x; prevYd = y; }
+    function playDiagramTap(){
+      try{
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(500, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(220, ctx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.1, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(); osc.stop(ctx.currentTime + 0.15);
+      } catch(e){}
+    }
+
+    function handleDiagramTap(){
+      playDiagramTap();
+      if('vibrate' in navigator){ navigator.vibrate(15); }
+      isZoomedD = !isZoomedD;
+      camera.position.z = isZoomedD ? 4 : 6.5;
+      autoRotateDiagram = !isZoomedD;
+    }
+
+    function onDownD(x,y){ isDraggingDiagram = true; dragMovedD = false; downXd = x; downYd = y; prevXd = x; prevYd = y; }
     function onMoveD(x,y){
       if(!isDraggingDiagram) return;
+      if(Math.abs(x - downXd) > 4 || Math.abs(y - downYd) > 4){ dragMovedD = true; autoRotateDiagram = false; }
       group.rotation.y += (x - prevXd) * 0.01;
       group.rotation.x += (y - prevYd) * 0.006;
       prevXd = x; prevYd = y;
     }
-    function onUpD(){ isDraggingDiagram = false; }
+    function onUpD(){
+      isDraggingDiagram = false;
+      if(!dragMovedD){ handleDiagramTap(); }
+    }
 
     container.addEventListener('mousedown', function(e){ onDownD(e.clientX, e.clientY); });
     window.addEventListener('mousemove', function(e){ onMoveD(e.clientX, e.clientY); });
@@ -1394,6 +1520,21 @@
     container.addEventListener('touchstart', function(e){ const t=e.touches[0]; onDownD(t.clientX, t.clientY); }, {passive:true});
     container.addEventListener('touchmove', function(e){ const t=e.touches[0]; onMoveD(t.clientX, t.clientY); }, {passive:true});
     container.addEventListener('touchend', onUpD);
+
+    document.getElementById('diagramNarrateBtn').addEventListener('click', function(){
+      const btn = this;
+      if(speechSynthesis.speaking){ speechSynthesis.cancel(); btn.textContent = '🔊 Explain this diagram'; return; }
+      const explanation = "This diagram shows how Pleazy Craft is built. At the center is your website. It connects to six things: P W A, which makes it installable like a real app. Next dot J S, the framework it's built with. Paystack, for online payments. Render, where it's hosted. Cloudinary, for fast image loading. And WhatsApp, for direct customer contact. Together, these make one fast, complete website.";
+      const utter = new SpeechSynthesisUtterance(explanation);
+      utter.rate = 0.95; utter.pitch = 0.95;
+      const voices = speechSynthesis.getVoices();
+      const preferredNames = ['Google UK English Female', 'Google US English', 'Samantha', 'Karen', 'Natural'];
+      let chosenVoice = voices.find(function(v){ return preferredNames.some(function(name){ return v.name.includes(name); }); });
+      if(chosenVoice){ utter.voice = chosenVoice; }
+      utter.onend = function(){ btn.textContent = '🔊 Explain this diagram'; };
+      speechSynthesis.speak(utter);
+      btn.textContent = '⏹ Stop';
+    });
 
     let tick = 0;
     function animateDiagram(){
