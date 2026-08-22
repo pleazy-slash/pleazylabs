@@ -108,8 +108,10 @@
   }
   .mark svg{width:100px; height:auto; filter:drop-shadow(0 0 30px rgba(217,172,61,0.35));}
   @keyframes floatY{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
+  #mascot{animation:mascotGesture 1.1s ease-in-out infinite;}
+  @keyframes mascotGesture{0%,100%{transform:rotate(0deg) translateY(0);}25%{transform:rotate(-12deg) translateY(-4px);}75%{transform:rotate(12deg) translateY(-2px);}}
   #projectorBeam{animation:beamPulse 1.4s ease-in-out infinite;}
-  @keyframes beamPulse{0%,100%{opacity:0.5;}50%{opacity:1;}}
+  @keyframes beamPulse{0%,100%{opacity:0.5;}30%{opacity:0.95;}45%{opacity:0.6;}50%{opacity:1;}75%{opacity:0.7;}100%{opacity:0.5;}}
   .motto-glow{
     background:linear-gradient(90deg, var(--gold-light), var(--green), var(--gold), var(--gold-light));
     background-size:300% auto;
@@ -347,26 +349,37 @@
     <h1>Websites that work like <span>real apps</span>, built for businesses ready to grow.</h1>
     <p class="motto-glow" style="font-style:italic; font-size:15px; margin-bottom:6px; font-weight:600;">"Real work, shown first — built to grow with you."</p>
     <p>Fast, installable, app-like websites with instant online payment — no app store, no download, no complexity for your customers.</p>
-    <div style="display:flex; gap:10px; justify-content:center; margin-bottom:12px;">
-      <button type="button" id="phonePowerBtn" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:12px; padding:6px 14px; border-radius:100px; cursor:pointer;">⏻ Power</button>
-      <button type="button" id="musicBtn" title="Tap to play/pause, double-tap to change track" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:12px; padding:6px 14px; border-radius:100px; cursor:pointer;">🎵 Calm</button>
-    </div>
+    <p style="font-size:11px; color:var(--muted); margin-bottom:14px;">✨ Tap the phone to reveal its controls</p>
     <div id="phone3d" style="width:100%; max-width:360px; height:440px; margin:0 auto 8px; cursor:grab; touch-action:pan-y;"></div>
-    <div style="display:flex; gap:8px; justify-content:center; margin-bottom:8px;">
-      <button type="button" id="rotateToggleBtn" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:16px; width:36px; height:36px; border-radius:50%; cursor:pointer;">⏸</button>
-      <button type="button" id="zoomOutBtn" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:16px; width:36px; height:36px; border-radius:50%; cursor:pointer;">−</button>
-      <button type="button" id="zoomInBtn" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:16px; width:36px; height:36px; border-radius:50%; cursor:pointer;">+</button>
+
+    <div id="phoneControlsPanel" style="opacity:0; max-height:0; overflow:hidden; transition:opacity .4s ease, max-height .4s ease;">
+      <div style="display:flex; gap:10px; justify-content:center; margin-bottom:6px; margin-top:10px;">
+        <button type="button" id="phonePowerBtn" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:12px; padding:6px 14px; border-radius:100px; cursor:pointer;">⏻ Power</button>
+        <button type="button" id="musicBtn" title="Tap to play/pause, double-tap to change track" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:12px; padding:6px 14px; border-radius:100px; cursor:pointer;">🎵 Calm</button>
+      </div>
+      <p style="font-size:10.5px; color:var(--muted); margin-bottom:12px;">tap music to play/pause · double-tap to change track</p>
+      <div style="display:flex; gap:8px; justify-content:center; margin-bottom:8px;">
+        <button type="button" id="rotateToggleBtn" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:16px; width:36px; height:36px; border-radius:50%; cursor:pointer;">⏸</button>
+        <button type="button" id="zoomOutBtn" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:16px; width:36px; height:36px; border-radius:50%; cursor:pointer;">−</button>
+        <button type="button" id="zoomInBtn" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:16px; width:36px; height:36px; border-radius:50%; cursor:pointer;">+</button>
+      </div>
+      <p style="font-size:11px; color:var(--muted); margin-top:-4px; margin-bottom:16px;">↔ drag to rotate · double-tap phone to zoom</p>
+      <div style="text-align:center; margin-bottom:8px;">
+        <button type="button" id="projectBtn" style="background:none; border:1px solid var(--gold); color:var(--gold-light); font-size:12px; padding:7px 16px; border-radius:100px; cursor:pointer;">📽️ Project the diagram</button>
+      </div>
     </div>
-    <p style="font-size:11px; color:var(--muted); margin-top:-4px; margin-bottom:16px;">↔ drag to rotate · tap to zoom</p>
-    <div style="text-align:center; margin-bottom:8px;">
-      <button type="button" id="projectBtn" style="background:none; border:1px solid var(--gold); color:var(--gold-light); font-size:12px; padding:7px 16px; border-radius:100px; cursor:pointer;">📽️ Project the diagram</button>
-    </div>
-    <div id="projectorBeam" style="display:none; width:2px; height:40px; margin:0 auto; background:linear-gradient(to bottom, var(--gold), transparent); box-shadow:0 0 12px 2px var(--gold);"></div>
+    <div id="projectorBeam" style="display:none; width:200px; height:70px; margin:0 auto; background:linear-gradient(to bottom, rgba(217,172,61,0.45), rgba(217,172,61,0.03)); clip-path:polygon(46% 0%, 54% 0%, 100% 100%, 0% 100%); filter:drop-shadow(0 0 10px rgba(217,172,61,0.5));"></div>
 
     <div style="max-width:400px; margin:0 auto;">
       <p style="font-size:12px; color:var(--gold-light); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:8px;">How it all connects</p>
       <div id="stackDiagram" style="width:100%; height:280px; touch-action:pan-y; cursor:grab;"></div>
-      <button type="button" id="diagramNarrateBtn" style="margin-top:10px; background:none; border:1px solid var(--line); color:var(--muted); font-size:12px; padding:6px 14px; border-radius:100px; cursor:pointer;">🔊 Explain this diagram</button>
+      <div style="display:flex; align-items:center; justify-content:center; gap:10px; margin-top:10px;">
+        <div id="talkingOrb" style="width:14px; height:14px; border-radius:50%; background:radial-gradient(circle, var(--gold-light), var(--gold)); opacity:0.3; transition:opacity .15s ease, transform .15s ease;"></div>
+        <button type="button" id="diagramNarrateBtn" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:12px; padding:6px 14px; border-radius:100px; cursor:pointer;">🔊 Explain this diagram</button>
+      </div>
+      <div id="mascotWrap" style="display:none; justify-content:center; margin-top:14px;">
+        <div id="mascot" style="width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg, var(--gold), var(--green)); display:flex; align-items:center; justify-content:center; font-size:26px;">👋</div>
+      </div>
     </div>
     <div class="hero-ctas">
       <a href="#" class="btn-primary" id="heroCta">See how it works & get a preview</a>
@@ -1162,18 +1175,60 @@
     const phoneGroup = new THREE.Group();
     scene.add(phoneGroup);
 
-    // Phone body (rounded box approximation)
-    const bodyGeo = new THREE.BoxGeometry(1.6, 3.2, 0.15);
-    const bodyMat = new THREE.MeshStandardMaterial({ color: 0x111815, metalness:0.7, roughness:0.25 });
+    // Realistic phone body — rounded edges via extruded shape
+    const w = 1.6, h = 3.2, depth = 0.16, radius = 0.22;
+    const bodyShape = new THREE.Shape();
+    bodyShape.moveTo(-w/2 + radius, -h/2);
+    bodyShape.lineTo(w/2 - radius, -h/2);
+    bodyShape.quadraticCurveTo(w/2, -h/2, w/2, -h/2 + radius);
+    bodyShape.lineTo(w/2, h/2 - radius);
+    bodyShape.quadraticCurveTo(w/2, h/2, w/2 - radius, h/2);
+    bodyShape.lineTo(-w/2 + radius, h/2);
+    bodyShape.quadraticCurveTo(-w/2, h/2, -w/2, h/2 - radius);
+    bodyShape.lineTo(-w/2, -h/2 + radius);
+    bodyShape.quadraticCurveTo(-w/2, -h/2, -w/2 + radius, -h/2);
+
+    const bodyGeo = new THREE.ExtrudeGeometry(bodyShape, { depth: depth, bevelEnabled:true, bevelThickness:0.02, bevelSize:0.015, bevelSegments:3, curveSegments:12 });
+    bodyGeo.center();
+    const bodyMat = new THREE.MeshStandardMaterial({ color: 0x14181a, metalness:0.85, roughness:0.2 });
     const body = new THREE.Mesh(bodyGeo, bodyMat);
     phoneGroup.add(body);
+
+    // Camera bump module (flagship-style, back top-left)
+    const bumpGeo = new THREE.BoxGeometry(0.62, 0.62, 0.04);
+    const bumpMat = new THREE.MeshStandardMaterial({ color: 0x0c0e10, metalness:0.9, roughness:0.15 });
+    const bump = new THREE.Mesh(bumpGeo, bumpMat);
+    bump.position.set(-w/2 + 0.42, h/2 - 0.5, -depth/2 - 0.02);
+    phoneGroup.add(bump);
+
+    [[-0.16,0.16],[0.16,0.16],[0,-0.16]].forEach(function(pos){
+      const lensGeo = new THREE.CircleGeometry(0.09, 24);
+      const lensMat = new THREE.MeshStandardMaterial({ color: 0x1a2530, metalness:1, roughness:0.05 });
+      const lens = new THREE.Mesh(lensGeo, lensMat);
+      lens.position.set(bump.position.x + pos[0], bump.position.y + pos[1], -depth/2 - 0.045);
+      phoneGroup.add(lens);
+    });
+
+    // Camera module bump (back, top-left)
+    const camBumpGeo = new THREE.BoxGeometry(0.55, 0.85, 0.04);
+    const camBumpMat = new THREE.MeshStandardMaterial({ color: 0x0a0c0d, metalness:0.9, roughness:0.15 });
+    const camBump = new THREE.Mesh(camBumpGeo, camBumpMat);
+    camBump.position.set(-0.42, 1.05, -depth/2 - 0.02);
+    phoneGroup.add(camBump);
+    [[-0.15,0.28],[0.15,0.28],[-0.15,0],[0.15,0]].forEach(function(pos){
+      const lensGeo = new THREE.CircleGeometry(0.09, 16);
+      const lensMat = new THREE.MeshStandardMaterial({ color: 0x1a2a3a, metalness:1, roughness:0.05 });
+      const lens = new THREE.Mesh(lensGeo, lensMat);
+      lens.position.set(camBump.position.x + pos[0], camBump.position.y + pos[1], camBump.position.z - 0.025);
+      phoneGroup.add(lens);
+    });
 
     // Screen with your actual work screenshot as texture
     const texLoader = new THREE.TextureLoader();
     const screenGeo = new THREE.PlaneGeometry(1.42, 3.0);
     const screenMat = new THREE.MeshBasicMaterial({ color: 0x0e2d21 });
     const screen = new THREE.Mesh(screenGeo, screenMat);
-    screen.position.z = 0.076;
+    screen.position.z = 0.09;
     phoneGroup.add(screen);
 
     const screenImages = ['work1.jpg','work2.jpg','work3.jpg','work4.jpg','work5.jpg'];
@@ -1242,12 +1297,32 @@
       if('vibrate' in navigator){ navigator.vibrate(15); }
     }
 
-    function handleTap(){
-      playTapSound();
-      vibrateShort();
+    let lastTapTime = 0;
+    const controlsPanel = document.getElementById('phoneControlsPanel');
+    let controlsVisible = false;
+
+    function toggleControls(){
+      controlsVisible = !controlsVisible;
+      controlsPanel.style.opacity = controlsVisible ? '1' : '0';
+      controlsPanel.style.maxHeight = controlsVisible ? '260px' : '0';
+    }
+
+    function handleZoom(){
       isZoomed = !isZoomed;
       camera.position.z = isZoomed ? 3.5 : 5.5;
       autoRotate = !isZoomed ? true : false;
+    }
+
+    function handleTap(){
+      playTapSound();
+      vibrateShort();
+      const now = Date.now();
+      if(now - lastTapTime < 320){
+        handleZoom();
+      } else {
+        toggleControls();
+      }
+      lastTapTime = now;
     }
 
     const rotateToggleBtn = document.getElementById('rotateToggleBtn');
@@ -1523,7 +1598,14 @@
 
     document.getElementById('diagramNarrateBtn').addEventListener('click', function(){
       const btn = this;
-      if(speechSynthesis.speaking){ speechSynthesis.cancel(); btn.textContent = '🔊 Explain this diagram'; return; }
+      const orb = document.getElementById('talkingOrb');
+      if(speechSynthesis.speaking){
+        speechSynthesis.cancel();
+        btn.textContent = '🔊 Explain this diagram';
+        orb.style.opacity = '0.3';
+        orb.style.transform = 'scale(1)';
+        return;
+      }
       const explanation = "This diagram shows how Pleazy Craft is built. At the center is your website. It connects to six things: P W A, which makes it installable like a real app. Next dot J S, the framework it's built with. Paystack, for online payments. Render, where it's hosted. Cloudinary, for fast image loading. And WhatsApp, for direct customer contact. Together, these make one fast, complete website.";
       const utter = new SpeechSynthesisUtterance(explanation);
       utter.rate = 0.95; utter.pitch = 0.95;
@@ -1531,7 +1613,20 @@
       const preferredNames = ['Google UK English Female', 'Google US English', 'Samantha', 'Karen', 'Natural'];
       let chosenVoice = voices.find(function(v){ return preferredNames.some(function(name){ return v.name.includes(name); }); });
       if(chosenVoice){ utter.voice = chosenVoice; }
-      utter.onend = function(){ btn.textContent = '🔊 Explain this diagram'; };
+
+      utter.onboundary = function(){
+        orb.style.opacity = '1';
+        orb.style.transform = 'scale(1.5)';
+        setTimeout(function(){
+          orb.style.opacity = '0.5';
+          orb.style.transform = 'scale(1)';
+        }, 120);
+      };
+      utter.onend = function(){
+        btn.textContent = '🔊 Explain this diagram';
+        orb.style.opacity = '0.3';
+        orb.style.transform = 'scale(1)';
+      };
       speechSynthesis.speak(utter);
       btn.textContent = '⏹ Stop';
     });
