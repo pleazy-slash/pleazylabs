@@ -110,8 +110,18 @@
   @keyframes floatY{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
   #mascot{animation:mascotGesture 1.1s ease-in-out infinite;}
   @keyframes mascotGesture{0%,100%{transform:rotate(0deg) translateY(0);}25%{transform:rotate(-12deg) translateY(-4px);}75%{transform:rotate(12deg) translateY(-2px);}}
-  #projectorBeam{animation:beamPulse 1.4s ease-in-out infinite;}
   @keyframes beamPulse{0%,100%{opacity:0.5;}30%{opacity:0.95;}45%{opacity:0.6;}50%{opacity:1;}75%{opacity:0.7;}100%{opacity:0.5;}}
+  .water-ripple{
+    position:absolute; border-radius:50%; pointer-events:none;
+    border:2px solid rgba(217,172,61,0.6);
+    background:radial-gradient(circle, rgba(217,172,61,0.15), transparent 70%);
+    transform:translate(-50%,-50%) scale(0);
+    animation:rippleExpand 0.9s ease-out forwards;
+  }
+  @keyframes rippleExpand{
+    0%{ transform:translate(-50%,-50%) scale(0); opacity:0.9; }
+    100%{ transform:translate(-50%,-50%) scale(3.2); opacity:0; }
+  }
   .motto-glow{
     background:linear-gradient(90deg, var(--gold-light), var(--green), var(--gold), var(--gold-light));
     background-size:300% auto;
@@ -350,7 +360,9 @@
     <p class="motto-glow" style="font-style:italic; font-size:15px; margin-bottom:6px; font-weight:600;">"Real work, shown first — built to grow with you."</p>
     <p>Fast, installable, app-like websites with instant online payment — no app store, no download, no complexity for your customers.</p>
     <p style="font-size:11px; color:var(--muted); margin-bottom:14px;">✨ Tap the phone to reveal its controls</p>
-    <div id="phone3d" style="width:100%; max-width:360px; height:440px; margin:0 auto 8px; cursor:grab; touch-action:pan-y;"></div>
+    <div id="phone3dWrap" style="position:relative; width:100%; max-width:360px; margin:0 auto 8px;">
+      <div id="phone3d" style="width:100%; height:440px; cursor:grab; touch-action:pan-y;"></div>
+    </div>
 
     <div id="phoneControlsPanel" style="opacity:0; max-height:0; overflow:hidden; transition:opacity .4s ease, max-height .4s ease;">
       <div style="display:flex; gap:10px; justify-content:center; margin-bottom:6px; margin-top:10px;">
@@ -368,12 +380,9 @@
         <button type="button" id="projectBtn" style="background:none; border:1px solid var(--gold); color:var(--gold-light); font-size:12px; padding:7px 16px; border-radius:100px; cursor:pointer;">📽️ Project the diagram</button>
       </div>
     </div>
-    <div id="projectorBeam" style="display:none; width:200px; height:70px; margin:0 auto; background:linear-gradient(to bottom, rgba(217,172,61,0.45), rgba(217,172,61,0.03)); clip-path:polygon(46% 0%, 54% 0%, 100% 100%, 0% 100%); filter:drop-shadow(0 0 10px rgba(217,172,61,0.5));"></div>
 
-    <div style="max-width:400px; margin:0 auto;">
-      <p style="font-size:12px; color:var(--gold-light); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:8px;">How it all connects</p>
-      <div id="stackDiagram" style="width:100%; height:280px; touch-action:pan-y; cursor:grab;"></div>
-      <div style="display:flex; align-items:center; justify-content:center; gap:10px; margin-top:10px;">
+    <div style="max-width:400px; margin:20px auto 0;">
+      <div style="display:flex; align-items:center; justify-content:center; gap:10px;">
         <div id="talkingOrb" style="width:14px; height:14px; border-radius:50%; background:radial-gradient(circle, var(--gold-light), var(--gold)); opacity:0.3; transition:opacity .15s ease, transform .15s ease;"></div>
         <button type="button" id="diagramNarrateBtn" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:12px; padding:6px 14px; border-radius:100px; cursor:pointer;">🔊 Explain this diagram</button>
       </div>
@@ -1232,10 +1241,8 @@
     phoneGroup.add(screen);
 
     const screenImages = ['work1.jpg','work2.jpg','work3.jpg','work4.jpg','work5.jpg'];
-    let screenImgIndex = 1; // start on work2 like before
-    let isProjecting = false;
+    let screenImgIndex = 1;
     function loadScreenImage(i){
-      if(isProjecting) return;
       texLoader.load(screenImages[i], function(tex){
         tex.colorSpace = THREE.SRGBColorSpace || tex.colorSpace;
         screenMat.map = tex;
@@ -1249,22 +1256,78 @@
       loadScreenImage(screenImgIndex);
     }, 4000);
 
-    const diagramRenderTarget = new THREE.WebGLRenderTarget(512, 512);
+    // ---- Holographic "how it connects" diagram, floating above the phone in real 3D space ----
+    const holoGroup = new THREE.Group();
+    holoGroup.position.set(0, 3.3, 0);
+    holoGroup.visible = false;
+    scene.add(holoGroup);
 
+    const holoNodeData = [
+      { label:'Your\nWebsite', pos:[0, 0, 0], color:0xd9ac3d, core:true },
+      { label:'PWA', pos:[-1.1, 0.65, 0.3], color:0x2f9e6e },
+      { label:'Next.js', pos:[1.1, 0.65, 0.3], color:0x4a90d9 },
+      { label:'Paystack', pos:[-1.1, -0.65, -0.3], color:0xe0a838 },
+      { label:'Render', pos:[1.1, -0.65, -0.3], color:0x9b6fd4 },
+      { label:'Cloudinary', pos:[0, 1.2, -0.5], color:0x50c8e0 },
+      { label:'WhatsApp', pos:[0, -1.2, -0.5], color:0x4fce5d }
+    ];
+    const holoNodeMeshes = [];
+    holoNodeData.forEach(function(n){
+      const geo = new THREE.SphereGeometry(n.core ? 0.22 : 0.14, 16, 16);
+      const mat = new THREE.MeshStandardMaterial({ color:n.color, emissive:n.color, emissiveIntensity:0.6, transparent:true, opacity:0.85 });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.position.set(n.pos[0], n.pos[1], n.pos[2]);
+      holoGroup.add(mesh);
+      holoNodeMeshes.push(mesh);
+    });
+    const holoLineMats = [];
+    for(let i=1; i<holoNodeData.length; i++){
+      const points = [
+        new THREE.Vector3(0,0,0),
+        new THREE.Vector3(holoNodeData[i].pos[0], holoNodeData[i].pos[1], holoNodeData[i].pos[2])
+      ];
+      const geo = new THREE.BufferGeometry().setFromPoints(points);
+      const mat = new THREE.LineBasicMaterial({ color: holoNodeData[i].color, transparent:true, opacity:0.6 });
+      const line = new THREE.Line(geo, mat);
+      holoGroup.add(line);
+      holoLineMats.push(mat);
+    }
+
+    // Multi-colored beam: small colored particles streaming from phone top to the hologram
+    const beamParticleCount = 40;
+    const beamGeo = new THREE.BufferGeometry();
+    const beamPositions = new Float32Array(beamParticleCount * 3);
+    const beamColorsArr = new Float32Array(beamParticleCount * 3);
+    const beamColorPalette = holoNodeData.map(function(n){ return new THREE.Color(n.color); });
+    for(let i=0; i<beamParticleCount; i++){
+      beamPositions[i*3] = (Math.random()-0.5)*0.15;
+      beamPositions[i*3+1] = Math.random()*3.3;
+      beamPositions[i*3+2] = (Math.random()-0.5)*0.15;
+      const c = beamColorPalette[i % beamColorPalette.length];
+      beamColorsArr[i*3] = c.r; beamColorsArr[i*3+1] = c.g; beamColorsArr[i*3+2] = c.b;
+    }
+    beamGeo.setAttribute('position', new THREE.BufferAttribute(beamPositions, 3));
+    beamGeo.setAttribute('color', new THREE.BufferAttribute(beamColorsArr, 3));
+    const beamMat = new THREE.PointsMaterial({ size:0.05, vertexColors:true, transparent:true, opacity:0 });
+    const beamPoints = new THREE.Points(beamGeo, beamMat);
+    scene.add(beamPoints);
+
+    let isProjecting = false;
+    let targetCamY = 0, targetCamZ = 5.5;
     document.getElementById('projectBtn').addEventListener('click', function(){
       isProjecting = !isProjecting;
-      const beam = document.getElementById('projectorBeam');
+      holoGroup.visible = isProjecting;
+      beamMat.opacity = isProjecting ? 0.85 : 0;
+      targetCamY = isProjecting ? 1.6 : 0;
+      targetCamZ = isProjecting ? 7.5 : 5.5;
       if(isProjecting){
         this.textContent = '📽️ Stop projecting';
         this.style.background = 'var(--gold)';
         this.style.color = 'var(--ink)';
-        beam.style.display = 'block';
       } else {
         this.textContent = '📽️ Project the diagram';
         this.style.background = 'none';
         this.style.color = 'var(--gold-light)';
-        beam.style.display = 'none';
-        loadScreenImage(screenImgIndex);
       }
     });
 
@@ -1297,6 +1360,24 @@
       if('vibrate' in navigator){ navigator.vibrate(15); }
     }
 
+    const phone3dWrap = document.getElementById('phone3dWrap');
+    function createRipple(x, y, isDouble){
+      const rect = phone3dWrap.getBoundingClientRect();
+      const ripple = document.createElement('div');
+      ripple.className = 'water-ripple';
+      const size = isDouble ? 140 : 90;
+      ripple.style.width = size + 'px';
+      ripple.style.height = size + 'px';
+      ripple.style.left = (x - rect.left) + 'px';
+      ripple.style.top = (y - rect.top) + 'px';
+      if(isDouble){
+        ripple.style.borderColor = 'rgba(47,158,110,0.7)';
+        ripple.style.background = 'radial-gradient(circle, rgba(47,158,110,0.2), transparent 70%)';
+      }
+      phone3dWrap.appendChild(ripple);
+      setTimeout(function(){ ripple.remove(); }, 900);
+    }
+
     let lastTapTime = 0;
     const controlsPanel = document.getElementById('phoneControlsPanel');
     let controlsVisible = false;
@@ -1313,11 +1394,13 @@
       autoRotate = !isZoomed ? true : false;
     }
 
-    function handleTap(){
+    function handleTap(x, y){
       playTapSound();
       vibrateShort();
       const now = Date.now();
-      if(now - lastTapTime < 320){
+      const isDouble = now - lastTapTime < 320;
+      createRipple(x, y, isDouble);
+      if(isDouble){
         handleZoom();
       } else {
         toggleControls();
@@ -1350,7 +1433,7 @@
     function onUp(){
       isDragging = false;
       container.style.cursor = 'grab';
-      if(!dragMoved){ handleTap(); }
+      if(!dragMoved){ handleTap(downX, downY); }
     }
 
     container.addEventListener('mousedown', function(e){ onDown(e.clientX, e.clientY); });
@@ -1360,16 +1443,31 @@
     container.addEventListener('touchmove', function(e){ const t = e.touches[0]; onMove(t.clientX, t.clientY); }, {passive:true});
     container.addEventListener('touchend', onUp);
 
+    let holoTick = 0;
     function animatePhone(){
       requestAnimationFrame(animatePhone);
       if(autoRotate){ phoneGroup.rotation.y += 0.004; }
 
-      if(isProjecting && window.__pleazyDiagramScene && window.__pleazyDiagramCamera){
-        renderer.setRenderTarget(diagramRenderTarget);
-        renderer.render(window.__pleazyDiagramScene, window.__pleazyDiagramCamera);
-        renderer.setRenderTarget(null);
-        screenMat.map = diagramRenderTarget.texture;
-        screenMat.needsUpdate = true;
+      camera.position.y += (targetCamY - camera.position.y) * 0.05;
+      camera.position.z += (targetCamZ - camera.position.z) * 0.05;
+      camera.lookAt(0, isProjecting ? 1.2 : 0, 0);
+
+      if(isProjecting){
+        holoTick += 0.03;
+        holoGroup.rotation.y += 0.006;
+        holoNodeMeshes.forEach(function(mesh, i){
+          mesh.material.emissiveIntensity = 0.4 + Math.abs(Math.sin(holoTick*1.3 + i)) * 0.5;
+        });
+        holoLineMats.forEach(function(mat, i){
+          mat.opacity = 0.3 + Math.abs(Math.sin(holoTick + i)) * 0.4;
+        });
+        const posAttr = beamPoints.geometry.attributes.position;
+        for(let i=0; i<beamParticleCount; i++){
+          let y = posAttr.getY(i) + 0.03;
+          if(y > 3.3){ y = 0; }
+          posAttr.setY(i, y);
+        }
+        posAttr.needsUpdate = true;
       }
 
       renderer.render(scene, camera);
@@ -1470,189 +1568,6 @@
     } catch(e){ console.log('feature init failed:', e); }
   })();
 
-  // ---- 3D "How it connects" stack diagram ----
-  (function initStackDiagram(){
-    try{
-    const container = document.getElementById('stackDiagram');
-    if(!container || typeof THREE === 'undefined') return;
-
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0e2d21);
-    const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
-    camera.position.set(0, 0, 6.5);
-
-    window.__pleazyDiagramScene = scene;
-    window.__pleazyDiagramCamera = camera;
-
-    const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
-    renderer.setSize(container.clientWidth, container.clientHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    container.appendChild(renderer.domElement);
-
-    scene.add(new THREE.AmbientLight(0xffffff, 1.2));
-    const dl = new THREE.DirectionalLight(0xd9ac3d, 1);
-    dl.position.set(2,3,4);
-    scene.add(dl);
-
-    const group = new THREE.Group();
-    scene.add(group);
-
-    const nodeData = [
-      { label:'Your\nWebsite', pos:[0, 0, 0], color:0xd9ac3d, core:true },
-      { label:'PWA', pos:[-2.2, 1.3, 0.5], color:0x2f9e6e },
-      { label:'Next.js', pos:[2.2, 1.3, 0.5], color:0x4a90d9 },
-      { label:'Paystack', pos:[-2.2, -1.3, -0.5], color:0xe0a838 },
-      { label:'Render', pos:[2.2, -1.3, -0.5], color:0x9b6fd4 },
-      { label:'Cloudinary', pos:[0, 2.4, -1], color:0x50c8e0 },
-      { label:'WhatsApp', pos:[0, -2.4, -1], color:0x4fce5d }
-    ];
-
-    const nodeMeshes = [];
-    nodeData.forEach(function(n){
-      const geo = new THREE.SphereGeometry(n.core ? 0.42 : 0.28, 20, 20);
-      const mat = new THREE.MeshStandardMaterial({ color: n.color, emissive: n.color, emissiveIntensity: 0.35, roughness:0.4 });
-      const mesh = new THREE.Mesh(geo, mat);
-      mesh.position.set(n.pos[0], n.pos[1], n.pos[2]);
-      group.add(mesh);
-      nodeMeshes.push(mesh);
-
-      const canvas = document.createElement('canvas');
-      canvas.width = 256; canvas.height = 64;
-      const ctx = canvas.getContext('2d');
-      ctx.font = 'bold 34px sans-serif';
-      ctx.fillStyle = '#ffffff';
-      ctx.textAlign = 'center';
-      const lines = n.label.split('\n');
-      lines.forEach(function(line, i){ ctx.fillText(line, 128, 30 + i*36); });
-      const tex = new THREE.CanvasTexture(canvas);
-      const labelMat = new THREE.SpriteMaterial({ map: tex, transparent:true });
-      const sprite = new THREE.Sprite(labelMat);
-      sprite.scale.set(1.4, 0.35, 1);
-      sprite.position.set(n.pos[0], n.pos[1] - (n.core ? 0.7 : 0.55), n.pos[2]);
-      group.add(sprite);
-    });
-
-    // Connection lines from core to each other node, with pulsing "ticking" opacity
-    const lineMats = [];
-    for(let i=1; i<nodeData.length; i++){
-      const points = [
-        new THREE.Vector3(nodeData[0].pos[0], nodeData[0].pos[1], nodeData[0].pos[2]),
-        new THREE.Vector3(nodeData[i].pos[0], nodeData[i].pos[1], nodeData[i].pos[2])
-      ];
-      const geo = new THREE.BufferGeometry().setFromPoints(points);
-      const mat = new THREE.LineBasicMaterial({ color: nodeData[i].color, transparent:true, opacity:0.5 });
-      const line = new THREE.Line(geo, mat);
-      group.add(line);
-      lineMats.push(mat);
-    }
-
-    let autoRotateDiagram = true;
-    let isDraggingDiagram = false;
-    let dragMovedD = false;
-    let isZoomedD = false;
-    let downXd = 0, downYd = 0;
-    let prevXd = 0, prevYd = 0;
-
-    function playDiagramTap(){
-      try{
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(500, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(220, ctx.currentTime + 0.1);
-        gain.gain.setValueAtTime(0.1, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
-        osc.connect(gain); gain.connect(ctx.destination);
-        osc.start(); osc.stop(ctx.currentTime + 0.15);
-      } catch(e){}
-    }
-
-    function handleDiagramTap(){
-      playDiagramTap();
-      if('vibrate' in navigator){ navigator.vibrate(15); }
-      isZoomedD = !isZoomedD;
-      camera.position.z = isZoomedD ? 4 : 6.5;
-      autoRotateDiagram = !isZoomedD;
-    }
-
-    function onDownD(x,y){ isDraggingDiagram = true; dragMovedD = false; downXd = x; downYd = y; prevXd = x; prevYd = y; }
-    function onMoveD(x,y){
-      if(!isDraggingDiagram) return;
-      if(Math.abs(x - downXd) > 4 || Math.abs(y - downYd) > 4){ dragMovedD = true; autoRotateDiagram = false; }
-      group.rotation.y += (x - prevXd) * 0.01;
-      group.rotation.x += (y - prevYd) * 0.006;
-      prevXd = x; prevYd = y;
-    }
-    function onUpD(){
-      isDraggingDiagram = false;
-      if(!dragMovedD){ handleDiagramTap(); }
-    }
-
-    container.addEventListener('mousedown', function(e){ onDownD(e.clientX, e.clientY); });
-    window.addEventListener('mousemove', function(e){ onMoveD(e.clientX, e.clientY); });
-    window.addEventListener('mouseup', onUpD);
-    container.addEventListener('touchstart', function(e){ const t=e.touches[0]; onDownD(t.clientX, t.clientY); }, {passive:true});
-    container.addEventListener('touchmove', function(e){ const t=e.touches[0]; onMoveD(t.clientX, t.clientY); }, {passive:true});
-    container.addEventListener('touchend', onUpD);
-
-    document.getElementById('diagramNarrateBtn').addEventListener('click', function(){
-      const btn = this;
-      const orb = document.getElementById('talkingOrb');
-      if(speechSynthesis.speaking){
-        speechSynthesis.cancel();
-        btn.textContent = '🔊 Explain this diagram';
-        orb.style.opacity = '0.3';
-        orb.style.transform = 'scale(1)';
-        return;
-      }
-      const explanation = "This diagram shows how Pleazy Craft is built. At the center is your website. It connects to six things: P W A, which makes it installable like a real app. Next dot J S, the framework it's built with. Paystack, for online payments. Render, where it's hosted. Cloudinary, for fast image loading. And WhatsApp, for direct customer contact. Together, these make one fast, complete website.";
-      const utter = new SpeechSynthesisUtterance(explanation);
-      utter.rate = 0.95; utter.pitch = 0.95;
-      const voices = speechSynthesis.getVoices();
-      const preferredNames = ['Google UK English Female', 'Google US English', 'Samantha', 'Karen', 'Natural'];
-      let chosenVoice = voices.find(function(v){ return preferredNames.some(function(name){ return v.name.includes(name); }); });
-      if(chosenVoice){ utter.voice = chosenVoice; }
-
-      utter.onboundary = function(){
-        orb.style.opacity = '1';
-        orb.style.transform = 'scale(1.5)';
-        setTimeout(function(){
-          orb.style.opacity = '0.5';
-          orb.style.transform = 'scale(1)';
-        }, 120);
-      };
-      utter.onend = function(){
-        btn.textContent = '🔊 Explain this diagram';
-        orb.style.opacity = '0.3';
-        orb.style.transform = 'scale(1)';
-      };
-      speechSynthesis.speak(utter);
-      btn.textContent = '⏹ Stop';
-    });
-
-    let tick = 0;
-    function animateDiagram(){
-      requestAnimationFrame(animateDiagram);
-      tick += 0.03;
-      if(autoRotateDiagram){ group.rotation.y += 0.003; }
-      lineMats.forEach(function(mat, i){
-        mat.opacity = 0.3 + Math.abs(Math.sin(tick + i)) * 0.4;
-      });
-      nodeMeshes.forEach(function(mesh, i){
-        mesh.material.emissiveIntensity = 0.25 + Math.abs(Math.sin(tick*1.3 + i)) * 0.3;
-      });
-      renderer.render(scene, camera);
-    }
-    animateDiagram();
-
-    window.addEventListener('resize', function(){
-      camera.aspect = container.clientWidth / container.clientHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(container.clientWidth, container.clientHeight);
-    });
-    } catch(e){ console.log('feature init failed:', e); }
-  })();
 
   let deferredInstallPrompt = null;
   const installBtn = document.getElementById('installBtn');
