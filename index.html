@@ -390,9 +390,6 @@
         <div id="talkingOrb" style="width:14px; height:14px; border-radius:50%; background:radial-gradient(circle, var(--gold-light), var(--gold)); opacity:0.3; transition:opacity .15s ease, transform .15s ease;"></div>
         <button type="button" id="diagramNarrateBtn" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:12px; padding:6px 14px; border-radius:100px; cursor:pointer;">🔊 Explain this diagram</button>
       </div>
-      <div id="mascotWrap" style="display:none; justify-content:center; margin-top:14px;">
-        <div id="mascot" style="width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg, var(--gold), var(--green)); display:flex; align-items:center; justify-content:center; font-size:26px;">👋</div>
-      </div>
     </div>
     <div class="hero-ctas">
       <a href="#" class="btn-primary" id="heroCta">See how it works & get a preview</a>
@@ -1319,41 +1316,85 @@
       holoLineMats.push(mat);
     }
 
-    // Real projector rays: cone beams fanning from the camera lens toward the hologram, parented to the phone
-    const rayOrigin = new THREE.Vector3(camBump.position.x, camBump.position.y, camBump.position.z - 0.06);
-    const rayTargetHeight = holoGroup.position.y - rayOrigin.y;
+    // Real projector beam: ONE clean soft beam from the main lens, like a real projector
+    function makeBeamGradientTexture(){
+      const canvas = document.createElement('canvas');
+      canvas.width = 128; canvas.height = 128;
+      const ctx = canvas.getContext('2d');
+      const grad = ctx.createRadialGradient(64,64,0, 64,64,64);
+      grad.addColorStop(0, 'rgba(240,220,180,0.9)');
+      grad.addColorStop(0.4, 'rgba(217,172,61,0.5)');
+      grad.addColorStop(1, 'rgba(217,172,61,0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0,0,128,128);
+      return new THREE.CanvasTexture(canvas);
+    }
+    const beamTexture = makeBeamGradientTexture();
+
+    // Anchor beam to the main (largest, bottom) lens, matching real reference photos
+    const mainLensLocal = new THREE.Vector3(camBump.position.x - 0.14, camBump.position.y - 0.30, camBump.position.z - 0.05);
     const rayGroup = new THREE.Group();
     phoneGroup.add(rayGroup);
-    const rayMeshes = [];
-    holoNodeData.forEach(function(n, idx){
-      const targetX = rayOrigin.x + n.pos[0] * 0.3;
-      const targetZ = rayOrigin.z + n.pos[2] * 0.3 + 0.15;
-      const rayLength = rayTargetHeight;
-      const coneGeo = new THREE.ConeGeometry(0.22, rayLength, 5, 1, true);
-      const coneMat = new THREE.MeshBasicMaterial({
-        color: n.color, transparent:true, opacity:0, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite:false
-      });
-      const cone = new THREE.Mesh(coneGeo, coneMat);
-      cone.position.set(rayOrigin.x + (targetX-rayOrigin.x)*0.5, rayOrigin.y + rayLength/2, rayOrigin.z + (targetZ-rayOrigin.z)*0.5);
-      const dir = new THREE.Vector3(targetX-rayOrigin.x, rayLength, targetZ-rayOrigin.z).normalize();
-      cone.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), dir);
-      rayGroup.add(cone);
-      rayMeshes.push(coneMat);
+
+    const beamLength = holoGroup.position.y - mainLensLocal.y;
+    const beamGeo = new THREE.ConeGeometry(0.85, beamLength, 32, 1, true);
+    const beamMat = new THREE.MeshBasicMaterial({
+      map: beamTexture, transparent:true, opacity:0, side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending, depthWrite:false
     });
+    const beamCone = new THREE.Mesh(beamGeo, beamMat);
+    const dirVec = new THREE.Vector3(holoGroup.position.x - mainLensLocal.x, beamLength, holoGroup.position.z - mainLensLocal.z).normalize();
+    beamCone.position.set(mainLensLocal.x + (holoGroup.position.x-mainLensLocal.x)*0.5, mainLensLocal.y + beamLength/2, mainLensLocal.z + (holoGroup.position.z-mainLensLocal.z)*0.5);
+    beamCone.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), dirVec);
+    rayGroup.add(beamCone);
+
+    // Small glowing point right at the lens for the light-source look
+    const lensGlowGeo = new THREE.SphereGeometry(0.09, 16, 16);
+    const lensGlowMat = new THREE.MeshBasicMaterial({ color:0xfff4d6, transparent:true, opacity:0 });
+    const lensGlow = new THREE.Mesh(lensGlowGeo, lensGlowMat);
+    lensGlow.position.copy(mainLensLocal);
+    phoneGroup.add(lensGlow);
+
+    const rayMeshes = [beamMat, lensGlowMat];
+
+    function makeProjectingCanvas(){
+      const canvas = document.createElement('canvas');
+      canvas.width = 512; canvas.height = 1024;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#0e2d21';
+      ctx.fillRect(0,0,512,1024);
+      ctx.fillStyle = '#f0d89c';
+      ctx.font = 'bold 44px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('📽️', 256, 460);
+      ctx.font = '600 30px sans-serif';
+      ctx.fillText('Projecting', 256, 540);
+      ctx.fillStyle = '#a9bdb3';
+      ctx.font = '22px sans-serif';
+      ctx.fillText('how it all connects', 256, 580);
+      return canvas;
+    }
+    const projectingTexture = new THREE.CanvasTexture(makeProjectingCanvas());
 
     let isProjecting = false;
+    let holoScale = 0;
+    let targetHoloScale = 0;
     let targetCamY = 0, targetCamZ = 5.5;
     document.getElementById('projectBtn').addEventListener('click', function(){
       isProjecting = !isProjecting;
-      holoGroup.visible = isProjecting;
-      rayMeshes.forEach(function(mat){ mat.opacity = isProjecting ? 0.28 : 0; });
+      targetHoloScale = isProjecting ? 1 : 0;
+      if(isProjecting){ holoGroup.visible = true; }
       targetCamY = isProjecting ? 1.6 : 0;
       targetCamZ = isProjecting ? 7.5 : 5.5;
       if(isProjecting){
+        screenMat.map = projectingTexture;
+        screenMat.color.set(0xffffff);
+        screenMat.needsUpdate = true;
         this.textContent = '📽️ Stop projecting';
         this.style.background = 'var(--gold)';
         this.style.color = 'var(--ink)';
       } else {
+        loadScreenImage(screenImgIndex);
         this.textContent = '📽️ Project the diagram';
         this.style.background = 'none';
         this.style.color = 'var(--gold-light)';
@@ -1481,18 +1522,21 @@
       camera.position.z += (targetCamZ - camera.position.z) * 0.05;
       camera.lookAt(0, isProjecting ? 1.2 : 0, 0);
 
-      if(isProjecting){
+      holoScale += (targetHoloScale - holoScale) * 0.08;
+      holoGroup.scale.set(holoScale, holoScale, holoScale);
+      if(holoScale < 0.01 && !isProjecting){ holoGroup.visible = false; }
+
+      if(isProjecting || holoScale > 0.01){
         holoTick += 0.03;
         holoGroup.rotation.y += 0.006;
         holoNodeMeshes.forEach(function(mesh, i){
           mesh.material.emissiveIntensity = 0.4 + Math.abs(Math.sin(holoTick*1.3 + i)) * 0.5;
         });
         holoLineMats.forEach(function(mat, i){
-          mat.opacity = 0.3 + Math.abs(Math.sin(holoTick + i)) * 0.4;
+          mat.opacity = (0.3 + Math.abs(Math.sin(holoTick + i)) * 0.4) * holoScale;
         });
-        rayMeshes.forEach(function(mat, i){
-          mat.opacity = 0.18 + Math.abs(Math.sin(holoTick*2 + i*0.7)) * 0.22;
-        });
+        beamMat.opacity = (0.55 + Math.sin(holoTick*3) * 0.06) * holoScale;
+        lensGlowMat.opacity = (0.9 + Math.sin(holoTick*4) * 0.1) * holoScale;
       }
 
       renderer.render(scene, camera);
@@ -1630,15 +1674,40 @@
       deep: "Let's go deeper. P W A means Progressive Web App — it lets your site install to a phone's home screen and work offline, without needing an app store. Next dot J S is the framework — the actual code structure that makes pages load fast and stay organized. Paystack handles payments — customers pay by card or transfer, and money goes straight to your bank. Render is where the website actually lives, on a server that's always on. Cloudinary stores and speeds up your images, so photos load fast even on weak internet. And WhatsApp gives customers a direct line to you, no separate app needed. Each piece does one job well, and together they form a complete, professional website."
     };
 
+    function speakExplanation(){
+      const utter = new SpeechSynthesisUtterance(explanations[depth]);
+      utter.rate = 0.93; utter.pitch = 1.0;
+      const voices = speechSynthesis.getVoices();
+      const preferredNames = ['Google UK English Female', 'Google US English', 'Microsoft Aria', 'Microsoft Jenny', 'Samantha', 'Karen', 'Moira', 'Natural', 'Neural'];
+      let chosenVoice = null;
+      for(const name of preferredNames){
+        chosenVoice = voices.find(function(v){ return v.name.includes(name); });
+        if(chosenVoice) break;
+      }
+      if(!chosenVoice){ chosenVoice = voices.find(function(v){ return v.lang === 'en-US' || v.lang === 'en-GB'; }); }
+      if(chosenVoice){ utter.voice = chosenVoice; }
+      utter.onstart = function(){ if('vibrate' in navigator){ navigator.vibrate(20); } };
+      utter.onboundary = function(){
+        orb.style.opacity = '1'; orb.style.transform = 'scale(1.5)';
+        if('vibrate' in navigator){ navigator.vibrate(8); }
+        setTimeout(function(){ orb.style.opacity = '0.5'; orb.style.transform = 'scale(1)'; }, 120);
+      };
+      utter.onend = function(){ narrateBtn.textContent = '🔊 Explain this diagram'; orb.style.opacity = '0.3'; orb.style.transform = 'scale(1)'; };
+      speechSynthesis.speak(utter);
+      narrateBtn.textContent = '⏹ Stop';
+    }
+
     depthShortBtn.addEventListener('click', function(){
       depth = 'short';
       depthShortBtn.style.background = 'var(--gold)'; depthShortBtn.style.color = 'var(--ink)'; depthShortBtn.style.border = 'none';
       depthDeepBtn.style.background = 'none'; depthDeepBtn.style.color = 'var(--muted)'; depthDeepBtn.style.border = '1px solid var(--line)';
+      if(speechSynthesis.speaking){ speechSynthesis.cancel(); speakExplanation(); }
     });
     depthDeepBtn.addEventListener('click', function(){
       depth = 'deep';
       depthDeepBtn.style.background = 'var(--gold)'; depthDeepBtn.style.color = 'var(--ink)'; depthDeepBtn.style.border = 'none';
       depthShortBtn.style.background = 'none'; depthShortBtn.style.color = 'var(--muted)'; depthShortBtn.style.border = '1px solid var(--line)';
+      if(speechSynthesis.speaking){ speechSynthesis.cancel(); speakExplanation(); }
     });
 
     narrateBtn.addEventListener('click', function(){
@@ -1648,19 +1717,7 @@
         orb.style.opacity = '0.3'; orb.style.transform = 'scale(1)';
         return;
       }
-      const utter = new SpeechSynthesisUtterance(explanations[depth]);
-      utter.rate = 0.95; utter.pitch = 0.95;
-      const voices = speechSynthesis.getVoices();
-      const preferredNames = ['Google UK English Female', 'Google US English', 'Samantha', 'Karen', 'Natural'];
-      let chosenVoice = voices.find(function(v){ return preferredNames.some(function(name){ return v.name.includes(name); }); });
-      if(chosenVoice){ utter.voice = chosenVoice; }
-      utter.onboundary = function(){
-        orb.style.opacity = '1'; orb.style.transform = 'scale(1.5)';
-        setTimeout(function(){ orb.style.opacity = '0.5'; orb.style.transform = 'scale(1)'; }, 120);
-      };
-      utter.onend = function(){ narrateBtn.textContent = '🔊 Explain this diagram'; orb.style.opacity = '0.3'; orb.style.transform = 'scale(1)'; };
-      speechSynthesis.speak(utter);
-      narrateBtn.textContent = '⏹ Stop';
+      speakExplanation();
     });
     } catch(e){ console.log('narration init failed:', e); }
   })();
