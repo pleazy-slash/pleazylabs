@@ -382,6 +382,10 @@
     </div>
 
     <div style="max-width:400px; margin:20px auto 0;">
+      <div style="display:flex; gap:6px; justify-content:center; margin-bottom:10px;">
+        <button type="button" id="depthShort" style="background:var(--gold); color:var(--ink); border:none; font-size:11px; padding:5px 12px; border-radius:100px; cursor:pointer; font-weight:600;">Short</button>
+        <button type="button" id="depthDeep" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:11px; padding:5px 12px; border-radius:100px; cursor:pointer;">Dive deeper</button>
+      </div>
       <div style="display:flex; align-items:center; justify-content:center; gap:10px;">
         <div id="talkingOrb" style="width:14px; height:14px; border-radius:50%; background:radial-gradient(circle, var(--gold-light), var(--gold)); opacity:0.3; transition:opacity .15s ease, transform .15s ease;"></div>
         <button type="button" id="diagramNarrateBtn" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:12px; padding:6px 14px; border-radius:100px; cursor:pointer;">🔊 Explain this diagram</button>
@@ -1136,25 +1140,40 @@
       return; // elements stay visible by default, no reveal animation, but nothing breaks
     }
 
-    els.forEach(function(el){
-      el.style.opacity = '0';
-      el.style.transform = 'translateY(28px)';
-      el.style.transition = 'opacity .7s cubic-bezier(.2,.7,.3,1), transform .7s cubic-bezier(.2,.7,.3,1)';
+    els.forEach(function(el, idx){
+      el.style.transition = 'opacity .6s cubic-bezier(.2,.7,.3,1), transform .6s cubic-bezier(.2,.7,.3,1)';
+      // slight random rotation direction per element for the "shatter" destructive feel
+      el.dataset.rot = (idx % 2 === 0) ? '6' : '-6';
     });
 
+    let lastScrollY = window.scrollY;
+    window.addEventListener('scroll', function(){
+      lastScrollY = window.scrollY;
+    }, { passive:true });
+
     const observer = new IntersectionObserver(function(entries){
-      entries.forEach(function(entry, i){
+      entries.forEach(function(entry){
+        const el = entry.target;
+        const scrollingDown = window.scrollY >= lastScrollY;
         if(entry.isIntersecting){
-          setTimeout(function(){
-            entry.target.style.opacity = '1';
-            entry.target.style.transform = 'translateY(0)';
-          }, i * 60);
-          observer.unobserve(entry.target);
+          // Constructive: piece forms into place
+          el.style.opacity = '1';
+          el.style.transform = 'translateY(0) rotate(0deg) scale(1)';
+        } else {
+          // Destructive: piece breaks apart as it leaves
+          const rot = el.dataset.rot;
+          const direction = entry.boundingClientRect.top < 0 ? -1 : 1; // left the top vs left the bottom
+          el.style.opacity = '0';
+          el.style.transform = 'translateY(' + (direction * 34) + 'px) rotate(' + (direction * rot) + 'deg) scale(0.92)';
         }
       });
-    }, { threshold: 0.15, rootMargin: '0px 0px -60px 0px' });
+    }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
 
-    els.forEach(function(el){ observer.observe(el); });
+    els.forEach(function(el){
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(28px) rotate(' + el.dataset.rot + 'deg) scale(0.95)';
+      observer.observe(el);
+    });
     } catch(e){ console.log('feature init failed:', e); }
   })();
 
@@ -1203,32 +1222,39 @@
     const body = new THREE.Mesh(bodyGeo, bodyMat);
     phoneGroup.add(body);
 
-    // Camera bump module (flagship-style, back top-left)
-    const bumpGeo = new THREE.BoxGeometry(0.62, 0.62, 0.04);
-    const bumpMat = new THREE.MeshStandardMaterial({ color: 0x0c0e10, metalness:0.9, roughness:0.15 });
-    const bump = new THREE.Mesh(bumpGeo, bumpMat);
-    bump.position.set(-w/2 + 0.42, h/2 - 0.5, -depth/2 - 0.02);
-    phoneGroup.add(bump);
-
-    [[-0.16,0.16],[0.16,0.16],[0,-0.16]].forEach(function(pos){
-      const lensGeo = new THREE.CircleGeometry(0.09, 24);
-      const lensMat = new THREE.MeshStandardMaterial({ color: 0x1a2530, metalness:1, roughness:0.05 });
-      const lens = new THREE.Mesh(lensGeo, lensMat);
-      lens.position.set(bump.position.x + pos[0], bump.position.y + pos[1], -depth/2 - 0.045);
-      phoneGroup.add(lens);
-    });
-
-    // Camera module bump (back, top-left)
-    const camBumpGeo = new THREE.BoxGeometry(0.55, 0.85, 0.04);
-    const camBumpMat = new THREE.MeshStandardMaterial({ color: 0x0a0c0d, metalness:0.9, roughness:0.15 });
+    // Camera module — matches S25 Ultra reference: 4 lenses (varying sizes) + laser AF + flash
+    const camBumpGeo = new THREE.BoxGeometry(0.58, 0.95, 0.045);
+    const camBumpMat = new THREE.MeshStandardMaterial({ color: 0x0a0c0d, metalness:0.92, roughness:0.12 });
     const camBump = new THREE.Mesh(camBumpGeo, camBumpMat);
-    camBump.position.set(-0.42, 1.05, -depth/2 - 0.02);
+    camBump.position.set(-w/2 + 0.42, h/2 - 0.58, -depth/2 - 0.02);
     phoneGroup.add(camBump);
-    [[-0.15,0.28],[0.15,0.28],[-0.15,0],[0.15,0]].forEach(function(pos){
-      const lensGeo = new THREE.CircleGeometry(0.09, 16);
-      const lensMat = new THREE.MeshStandardMaterial({ color: 0x1a2a3a, metalness:1, roughness:0.05 });
+
+    const lensSpecs = [
+      { pos:[-0.14, 0.31], r:0.115 },  // 200MP Wide
+      { pos:[0.14, 0.31], r:0.10 },    // 50MP Periscope 5x
+      { pos:[-0.14, -0.02], r:0.075 }, // laser AF (small, dark red)
+      { pos:[0.14, -0.02], r:0.075, flash:true }, // flash (light)
+      { pos:[-0.14, -0.30], r:0.105 }, // 10MP Telephoto 3x
+      { pos:[0.14, -0.30], r:0.10 }    // 12MP Ultra Wide
+    ];
+    lensSpecs.forEach(function(spec){
+      const isRing = spec.r > 0.09;
+      if(isRing){
+        const ringGeo = new THREE.RingGeometry(spec.r*0.75, spec.r, 24);
+        const ringMat = new THREE.MeshStandardMaterial({ color:0x2a3a4a, metalness:1, roughness:0.1 });
+        const ring = new THREE.Mesh(ringGeo, ringMat);
+        ring.position.set(camBump.position.x + spec.pos[0], camBump.position.y + spec.pos[1], camBump.position.z - 0.024);
+        phoneGroup.add(ring);
+      }
+      const lensGeo = new THREE.CircleGeometry(spec.r*0.7, 20);
+      const lensMat = new THREE.MeshStandardMaterial({
+        color: spec.flash ? 0xfff2c9 : 0x111820,
+        emissive: spec.flash ? 0xfff2c9 : 0x0a1a2a,
+        emissiveIntensity: spec.flash ? 0.4 : 0.15,
+        metalness:1, roughness:0.05
+      });
       const lens = new THREE.Mesh(lensGeo, lensMat);
-      lens.position.set(camBump.position.x + pos[0], camBump.position.y + pos[1], camBump.position.z - 0.025);
+      lens.position.set(camBump.position.x + spec.pos[0], camBump.position.y + spec.pos[1], camBump.position.z - 0.026);
       phoneGroup.add(lens);
     });
 
@@ -1256,11 +1282,11 @@
       loadScreenImage(screenImgIndex);
     }, 4000);
 
-    // ---- Holographic "how it connects" diagram, floating above the phone in real 3D space ----
+    // ---- Holographic "how it connects" diagram, projected above the phone, moves together with it ----
     const holoGroup = new THREE.Group();
-    holoGroup.position.set(0, 3.3, 0);
+    holoGroup.position.set(0, 3.3, 0.15);
     holoGroup.visible = false;
-    scene.add(holoGroup);
+    phoneGroup.add(holoGroup);
 
     const holoNodeData = [
       { label:'Your\nWebsite', pos:[0, 0, 0], color:0xd9ac3d, core:true },
@@ -1293,31 +1319,34 @@
       holoLineMats.push(mat);
     }
 
-    // Multi-colored beam: small colored particles streaming from phone top to the hologram
-    const beamParticleCount = 40;
-    const beamGeo = new THREE.BufferGeometry();
-    const beamPositions = new Float32Array(beamParticleCount * 3);
-    const beamColorsArr = new Float32Array(beamParticleCount * 3);
-    const beamColorPalette = holoNodeData.map(function(n){ return new THREE.Color(n.color); });
-    for(let i=0; i<beamParticleCount; i++){
-      beamPositions[i*3] = (Math.random()-0.5)*0.15;
-      beamPositions[i*3+1] = Math.random()*3.3;
-      beamPositions[i*3+2] = (Math.random()-0.5)*0.15;
-      const c = beamColorPalette[i % beamColorPalette.length];
-      beamColorsArr[i*3] = c.r; beamColorsArr[i*3+1] = c.g; beamColorsArr[i*3+2] = c.b;
-    }
-    beamGeo.setAttribute('position', new THREE.BufferAttribute(beamPositions, 3));
-    beamGeo.setAttribute('color', new THREE.BufferAttribute(beamColorsArr, 3));
-    const beamMat = new THREE.PointsMaterial({ size:0.05, vertexColors:true, transparent:true, opacity:0 });
-    const beamPoints = new THREE.Points(beamGeo, beamMat);
-    scene.add(beamPoints);
+    // Real projector rays: cone beams fanning from the camera lens toward the hologram, parented to the phone
+    const rayOrigin = new THREE.Vector3(camBump.position.x, camBump.position.y, camBump.position.z - 0.06);
+    const rayTargetHeight = holoGroup.position.y - rayOrigin.y;
+    const rayGroup = new THREE.Group();
+    phoneGroup.add(rayGroup);
+    const rayMeshes = [];
+    holoNodeData.forEach(function(n, idx){
+      const targetX = rayOrigin.x + n.pos[0] * 0.3;
+      const targetZ = rayOrigin.z + n.pos[2] * 0.3 + 0.15;
+      const rayLength = rayTargetHeight;
+      const coneGeo = new THREE.ConeGeometry(0.22, rayLength, 5, 1, true);
+      const coneMat = new THREE.MeshBasicMaterial({
+        color: n.color, transparent:true, opacity:0, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite:false
+      });
+      const cone = new THREE.Mesh(coneGeo, coneMat);
+      cone.position.set(rayOrigin.x + (targetX-rayOrigin.x)*0.5, rayOrigin.y + rayLength/2, rayOrigin.z + (targetZ-rayOrigin.z)*0.5);
+      const dir = new THREE.Vector3(targetX-rayOrigin.x, rayLength, targetZ-rayOrigin.z).normalize();
+      cone.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), dir);
+      rayGroup.add(cone);
+      rayMeshes.push(coneMat);
+    });
 
     let isProjecting = false;
     let targetCamY = 0, targetCamZ = 5.5;
     document.getElementById('projectBtn').addEventListener('click', function(){
       isProjecting = !isProjecting;
       holoGroup.visible = isProjecting;
-      beamMat.opacity = isProjecting ? 0.85 : 0;
+      rayMeshes.forEach(function(mat){ mat.opacity = isProjecting ? 0.28 : 0; });
       targetCamY = isProjecting ? 1.6 : 0;
       targetCamZ = isProjecting ? 7.5 : 5.5;
       if(isProjecting){
@@ -1461,13 +1490,9 @@
         holoLineMats.forEach(function(mat, i){
           mat.opacity = 0.3 + Math.abs(Math.sin(holoTick + i)) * 0.4;
         });
-        const posAttr = beamPoints.geometry.attributes.position;
-        for(let i=0; i<beamParticleCount; i++){
-          let y = posAttr.getY(i) + 0.03;
-          if(y > 3.3){ y = 0; }
-          posAttr.setY(i, y);
-        }
-        posAttr.needsUpdate = true;
+        rayMeshes.forEach(function(mat, i){
+          mat.opacity = 0.18 + Math.abs(Math.sin(holoTick*2 + i*0.7)) * 0.22;
+        });
       }
 
       renderer.render(scene, camera);
@@ -1568,6 +1593,77 @@
     } catch(e){ console.log('feature init failed:', e); }
   })();
 
+
+  // ---- Generic water ripple for cards and other clickable elements ----
+  (function initGenericRipples(){
+    try{
+    const rippleTargets = document.querySelectorAll('.card, .work-card');
+    rippleTargets.forEach(function(el){
+      el.style.position = el.style.position || 'relative';
+      el.style.overflow = el.style.overflow === 'hidden' ? 'hidden' : el.style.overflow;
+      el.addEventListener('click', function(e){
+        const rect = el.getBoundingClientRect();
+        const ripple = document.createElement('div');
+        ripple.className = 'water-ripple';
+        ripple.style.width = '80px';
+        ripple.style.height = '80px';
+        ripple.style.left = (e.clientX - rect.left) + 'px';
+        ripple.style.top = (e.clientY - rect.top) + 'px';
+        el.appendChild(ripple);
+        setTimeout(function(){ ripple.remove(); }, 900);
+      });
+    });
+    } catch(e){ console.log('ripple init failed:', e); }
+  })();
+
+  // ---- Diagram narration: short vs deep explanation (kept independent so it can't be deleted with 3D code) ----
+  (function initDiagramNarration(){
+    try{
+    const narrateBtn = document.getElementById('diagramNarrateBtn');
+    const orb = document.getElementById('talkingOrb');
+    const depthShortBtn = document.getElementById('depthShort');
+    const depthDeepBtn = document.getElementById('depthDeep');
+    let depth = 'short';
+
+    const explanations = {
+      short: "This shows how Pleazy Craft is built. Your website sits at the center, connected to six tools: P W A, Next dot J S, Paystack, Render, Cloudinary, and WhatsApp — together making one fast, complete website.",
+      deep: "Let's go deeper. P W A means Progressive Web App — it lets your site install to a phone's home screen and work offline, without needing an app store. Next dot J S is the framework — the actual code structure that makes pages load fast and stay organized. Paystack handles payments — customers pay by card or transfer, and money goes straight to your bank. Render is where the website actually lives, on a server that's always on. Cloudinary stores and speeds up your images, so photos load fast even on weak internet. And WhatsApp gives customers a direct line to you, no separate app needed. Each piece does one job well, and together they form a complete, professional website."
+    };
+
+    depthShortBtn.addEventListener('click', function(){
+      depth = 'short';
+      depthShortBtn.style.background = 'var(--gold)'; depthShortBtn.style.color = 'var(--ink)'; depthShortBtn.style.border = 'none';
+      depthDeepBtn.style.background = 'none'; depthDeepBtn.style.color = 'var(--muted)'; depthDeepBtn.style.border = '1px solid var(--line)';
+    });
+    depthDeepBtn.addEventListener('click', function(){
+      depth = 'deep';
+      depthDeepBtn.style.background = 'var(--gold)'; depthDeepBtn.style.color = 'var(--ink)'; depthDeepBtn.style.border = 'none';
+      depthShortBtn.style.background = 'none'; depthShortBtn.style.color = 'var(--muted)'; depthShortBtn.style.border = '1px solid var(--line)';
+    });
+
+    narrateBtn.addEventListener('click', function(){
+      if(speechSynthesis.speaking){
+        speechSynthesis.cancel();
+        narrateBtn.textContent = '🔊 Explain this diagram';
+        orb.style.opacity = '0.3'; orb.style.transform = 'scale(1)';
+        return;
+      }
+      const utter = new SpeechSynthesisUtterance(explanations[depth]);
+      utter.rate = 0.95; utter.pitch = 0.95;
+      const voices = speechSynthesis.getVoices();
+      const preferredNames = ['Google UK English Female', 'Google US English', 'Samantha', 'Karen', 'Natural'];
+      let chosenVoice = voices.find(function(v){ return preferredNames.some(function(name){ return v.name.includes(name); }); });
+      if(chosenVoice){ utter.voice = chosenVoice; }
+      utter.onboundary = function(){
+        orb.style.opacity = '1'; orb.style.transform = 'scale(1.5)';
+        setTimeout(function(){ orb.style.opacity = '0.5'; orb.style.transform = 'scale(1)'; }, 120);
+      };
+      utter.onend = function(){ narrateBtn.textContent = '🔊 Explain this diagram'; orb.style.opacity = '0.3'; orb.style.transform = 'scale(1)'; };
+      speechSynthesis.speak(utter);
+      narrateBtn.textContent = '⏹ Stop';
+    });
+    } catch(e){ console.log('narration init failed:', e); }
+  })();
 
   let deferredInstallPrompt = null;
   const installBtn = document.getElementById('installBtn');
