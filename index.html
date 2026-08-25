@@ -1220,10 +1220,10 @@
     phoneGroup.add(body);
 
     // Camera module — matches S25 Ultra reference: 4 lenses (varying sizes) + laser AF + flash
-    const camBumpGeo = new THREE.BoxGeometry(0.58, 0.95, 0.045);
-    const camBumpMat = new THREE.MeshStandardMaterial({ color: 0x0a0c0d, metalness:0.92, roughness:0.12 });
+    const camBumpGeo = new THREE.BoxGeometry(0.58, 0.95, 0.05);
+    const camBumpMat = new THREE.MeshStandardMaterial({ color: 0x22282c, metalness:0.85, roughness:0.25, emissive:0x0a0d10, emissiveIntensity:0.3 });
     const camBump = new THREE.Mesh(camBumpGeo, camBumpMat);
-    camBump.position.set(-w/2 + 0.42, h/2 - 0.58, -depth/2 - 0.02);
+    camBump.position.set(-w/2 + 0.42, h/2 - 0.58, -depth/2 - 0.025);
     phoneGroup.add(camBump);
 
     const lensSpecs = [
@@ -1238,20 +1238,20 @@
       const isRing = spec.r > 0.09;
       if(isRing){
         const ringGeo = new THREE.RingGeometry(spec.r*0.75, spec.r, 24);
-        const ringMat = new THREE.MeshStandardMaterial({ color:0x2a3a4a, metalness:1, roughness:0.1 });
+        const ringMat = new THREE.MeshStandardMaterial({ color:0x8a95a0, metalness:1, roughness:0.08, emissive:0x3a4550, emissiveIntensity:0.4 });
         const ring = new THREE.Mesh(ringGeo, ringMat);
-        ring.position.set(camBump.position.x + spec.pos[0], camBump.position.y + spec.pos[1], camBump.position.z - 0.024);
+        ring.position.set(camBump.position.x + spec.pos[0], camBump.position.y + spec.pos[1], camBump.position.z - 0.028);
         phoneGroup.add(ring);
       }
       const lensGeo = new THREE.CircleGeometry(spec.r*0.7, 20);
       const lensMat = new THREE.MeshStandardMaterial({
-        color: spec.flash ? 0xfff2c9 : 0x111820,
-        emissive: spec.flash ? 0xfff2c9 : 0x0a1a2a,
-        emissiveIntensity: spec.flash ? 0.4 : 0.15,
+        color: spec.flash ? 0xfff2c9 : 0x0d2a40,
+        emissive: spec.flash ? 0xfff2c9 : 0x1a4a70,
+        emissiveIntensity: spec.flash ? 0.5 : 0.35,
         metalness:1, roughness:0.05
       });
       const lens = new THREE.Mesh(lensGeo, lensMat);
-      lens.position.set(camBump.position.x + spec.pos[0], camBump.position.y + spec.pos[1], camBump.position.z - 0.026);
+      lens.position.set(camBump.position.x + spec.pos[0], camBump.position.y + spec.pos[1], camBump.position.z - 0.03);
       phoneGroup.add(lens);
     });
 
@@ -1281,7 +1281,7 @@
 
     // ---- Holographic "how it connects" diagram, projected above the phone, moves together with it ----
     const holoGroup = new THREE.Group();
-    holoGroup.position.set(0, 3.3, 0.15);
+    holoGroup.position.set(0, 0.42, -6.2);
     holoGroup.visible = false;
     phoneGroup.add(holoGroup);
 
@@ -1336,15 +1336,16 @@
     const rayGroup = new THREE.Group();
     phoneGroup.add(rayGroup);
 
-    const beamLength = holoGroup.position.y - mainLensLocal.y;
-    const beamGeo = new THREE.ConeGeometry(0.85, beamLength, 32, 1, true);
+    const beamLength = mainLensLocal.distanceTo(holoGroup.position);
+    const beamGeo = new THREE.ConeGeometry(0.75, beamLength, 32, 1, true);
     const beamMat = new THREE.MeshBasicMaterial({
       map: beamTexture, transparent:true, opacity:0, side: THREE.DoubleSide,
       blending: THREE.AdditiveBlending, depthWrite:false
     });
     const beamCone = new THREE.Mesh(beamGeo, beamMat);
-    const dirVec = new THREE.Vector3(holoGroup.position.x - mainLensLocal.x, beamLength, holoGroup.position.z - mainLensLocal.z).normalize();
-    beamCone.position.set(mainLensLocal.x + (holoGroup.position.x-mainLensLocal.x)*0.5, mainLensLocal.y + beamLength/2, mainLensLocal.z + (holoGroup.position.z-mainLensLocal.z)*0.5);
+    const dirVec = new THREE.Vector3().subVectors(holoGroup.position, mainLensLocal).normalize();
+    const midpoint = new THREE.Vector3().addVectors(mainLensLocal, holoGroup.position).multiplyScalar(0.5);
+    beamCone.position.copy(midpoint);
     beamCone.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), dirVec);
     rayGroup.add(beamCone);
 
@@ -1379,13 +1380,14 @@
     let isProjecting = false;
     let holoScale = 0;
     let targetHoloScale = 0;
-    let targetCamY = 0, targetCamZ = 5.5;
+    let targetCamX = 0, targetCamY = 0, targetCamZ = 5.5;
     document.getElementById('projectBtn').addEventListener('click', function(){
       isProjecting = !isProjecting;
       targetHoloScale = isProjecting ? 1 : 0;
       if(isProjecting){ holoGroup.visible = true; }
-      targetCamY = isProjecting ? 1.6 : 0;
-      targetCamZ = isProjecting ? 7.5 : 5.5;
+      targetCamX = isProjecting ? -3.2 : 0;
+      targetCamY = isProjecting ? 0.8 : 0;
+      targetCamZ = isProjecting ? 4.5 : 5.5;
       if(isProjecting){
         screenMat.map = projectingTexture;
         screenMat.color.set(0xffffff);
@@ -1518,9 +1520,10 @@
       requestAnimationFrame(animatePhone);
       if(autoRotate){ phoneGroup.rotation.y += 0.004; }
 
+      camera.position.x += (targetCamX - camera.position.x) * 0.05;
       camera.position.y += (targetCamY - camera.position.y) * 0.05;
       camera.position.z += (targetCamZ - camera.position.z) * 0.05;
-      camera.lookAt(0, isProjecting ? 1.2 : 0, 0);
+      camera.lookAt(isProjecting ? -1.5 : 0, isProjecting ? 0.5 : 0, isProjecting ? -3 : 0);
 
       holoScale += (targetHoloScale - holoScale) * 0.08;
       holoGroup.scale.set(holoScale, holoScale, holoScale);
