@@ -376,21 +376,9 @@
         <button type="button" id="zoomInBtn" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:16px; width:36px; height:36px; border-radius:50%; cursor:pointer;">+</button>
       </div>
       <p style="font-size:11px; color:var(--muted); margin-top:-4px; margin-bottom:16px;">↔ drag to rotate · double-tap phone to zoom</p>
-      <div style="text-align:center; margin-bottom:8px;">
-        <button type="button" id="projectBtn" style="background:none; border:1px solid var(--gold); color:var(--gold-light); font-size:12px; padding:7px 16px; border-radius:100px; cursor:pointer;">📽️ Project the diagram</button>
-      </div>
     </div>
 
-    <div style="max-width:400px; margin:20px auto 0;">
-      <div style="display:flex; gap:6px; justify-content:center; margin-bottom:10px;">
-        <button type="button" id="depthShort" style="background:var(--gold); color:var(--ink); border:none; font-size:11px; padding:5px 12px; border-radius:100px; cursor:pointer; font-weight:600;">Short</button>
-        <button type="button" id="depthDeep" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:11px; padding:5px 12px; border-radius:100px; cursor:pointer;">Dive deeper</button>
-      </div>
-      <div style="display:flex; align-items:center; justify-content:center; gap:10px;">
-        <div id="talkingOrb" style="width:14px; height:14px; border-radius:50%; background:radial-gradient(circle, var(--gold-light), var(--gold)); opacity:0.3; transition:opacity .15s ease, transform .15s ease;"></div>
-        <button type="button" id="diagramNarrateBtn" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:12px; padding:6px 14px; border-radius:100px; cursor:pointer;">🔊 Explain this diagram</button>
-      </div>
-    </div>
+    <p style="font-size:12px; color:var(--muted); margin-top:16px;">The Pleazy Craft PWA — installed and ready</p>
     <div class="hero-ctas">
       <a href="#" class="btn-primary" id="heroCta">See how it works & get a preview</a>
       <button type="button" class="btn-ghost" id="howBtn" style="border:1px solid var(--line); background:none; font-family:inherit; cursor:pointer;">See how it works</button>
@@ -1219,43 +1207,21 @@
     const body = new THREE.Mesh(bodyGeo, bodyMat);
     phoneGroup.add(body);
 
-    // Camera module — matches S25 Ultra reference: 4 lenses (varying sizes) + laser AF + flash
-    const camBumpGeo = new THREE.BoxGeometry(0.58, 0.95, 0.05);
-    const camBumpMat = new THREE.MeshStandardMaterial({ color: 0x22282c, metalness:0.85, roughness:0.25, emissive:0x0a0d10, emissiveIntensity:0.3 });
-    const camBump = new THREE.Mesh(camBumpGeo, camBumpMat);
-    camBump.position.set(-w/2 + 0.42, h/2 - 0.58, -depth/2 - 0.025);
-    phoneGroup.add(camBump);
-
-    const lensSpecs = [
-      { pos:[-0.14, 0.31], r:0.115 },  // 200MP Wide
-      { pos:[0.14, 0.31], r:0.10 },    // 50MP Periscope 5x
-      { pos:[-0.14, -0.02], r:0.075 }, // laser AF (small, dark red)
-      { pos:[0.14, -0.02], r:0.075, flash:true }, // flash (light)
-      { pos:[-0.14, -0.30], r:0.105 }, // 10MP Telephoto 3x
-      { pos:[0.14, -0.30], r:0.10 }    // 12MP Ultra Wide
-    ];
-    lensSpecs.forEach(function(spec){
-      const isRing = spec.r > 0.09;
-      if(isRing){
-        const ringGeo = new THREE.RingGeometry(spec.r*0.75, spec.r, 24);
-        const ringMat = new THREE.MeshStandardMaterial({ color:0x8a95a0, metalness:1, roughness:0.08, emissive:0x3a4550, emissiveIntensity:0.4 });
-        const ring = new THREE.Mesh(ringGeo, ringMat);
-        ring.position.set(camBump.position.x + spec.pos[0], camBump.position.y + spec.pos[1], camBump.position.z - 0.028);
-        phoneGroup.add(ring);
-      }
-      const lensGeo = new THREE.CircleGeometry(spec.r*0.7, 20);
-      const lensMat = new THREE.MeshStandardMaterial({
-        color: spec.flash ? 0xfff2c9 : 0x0d2a40,
-        emissive: spec.flash ? 0xfff2c9 : 0x1a4a70,
-        emissiveIntensity: spec.flash ? 0.5 : 0.35,
-        metalness:1, roughness:0.05
-      });
-      const lens = new THREE.Mesh(lensGeo, lensMat);
-      lens.position.set(camBump.position.x + spec.pos[0], camBump.position.y + spec.pos[1], camBump.position.z - 0.03);
-      phoneGroup.add(lens);
+    // Real camera photo texture on the back, instead of built geometry
+    const camTexLoader = new THREE.TextureLoader();
+    const camPlaneGeo = new THREE.PlaneGeometry(w * 0.62, h * 0.62);
+    const camPlaneMat = new THREE.MeshBasicMaterial({ transparent:true, opacity:0 });
+    const camPlane = new THREE.Mesh(camPlaneGeo, camPlaneMat);
+    camPlane.position.set(-w/2 + w*0.31, h/2 - h*0.32, -depth/2 - 0.03);
+    phoneGroup.add(camPlane);
+    camTexLoader.load('camera_texture.png', function(tex){
+      tex.colorSpace = THREE.SRGBColorSpace || tex.colorSpace;
+      camPlaneMat.map = tex;
+      camPlaneMat.opacity = 1;
+      camPlaneMat.needsUpdate = true;
     });
 
-    // Screen with your actual work screenshot as texture
+    // Front screen: Pleazy PWA splash, then cycles through real work photos
     const texLoader = new THREE.TextureLoader();
     const screenGeo = new THREE.PlaneGeometry(1.42, 3.0);
     const screenMat = new THREE.MeshBasicMaterial({ color: 0x0e2d21 });
@@ -1263,225 +1229,49 @@
     screen.position.z = 0.09;
     phoneGroup.add(screen);
 
-    const screenImages = ['work1.jpg','work2.jpg','work3.jpg','work4.jpg','work5.jpg'];
-    let screenImgIndex = 1;
-    function makeFallbackCanvas(label){
+    function makeSplashTexture(){
       const canvas = document.createElement('canvas');
       canvas.width = 512; canvas.height = 1024;
       const ctx = canvas.getContext('2d');
-      ctx.fillStyle = '#0e2d21';
+      const grad = ctx.createLinearGradient(0,0,0,1024);
+      grad.addColorStop(0, '#123a2b'); grad.addColorStop(1, '#0e2d21');
+      ctx.fillStyle = grad;
       ctx.fillRect(0,0,512,1024);
       ctx.fillStyle = '#f0d89c';
-      ctx.font = 'bold 36px sans-serif';
+      ctx.font = 'bold 64px sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(label, 256, 500);
-      return canvas;
-    }
-    function loadScreenImage(i){
-      texLoader.load(
-        screenImages[i],
-        function(tex){
-          tex.colorSpace = THREE.SRGBColorSpace || tex.colorSpace;
-          screenMat.map = tex;
-          screenMat.color.set(0xffffff);
-          screenMat.needsUpdate = true;
-        },
-        undefined,
-        function(err){
-          console.log('screen image failed to load:', screenImages[i], err);
-          screenMat.map = new THREE.CanvasTexture(makeFallbackCanvas('Pleazy Craft'));
-          screenMat.color.set(0xffffff);
-          screenMat.needsUpdate = true;
-        }
-      );
-    }
-    loadScreenImage(screenImgIndex);
-    setInterval(function(){
-      screenImgIndex = (screenImgIndex + 1) % screenImages.length;
-      loadScreenImage(screenImgIndex);
-    }, 4000);
-
-    // ---- Holographic "how it connects" diagram, projected above the phone, moves together with it ----
-    const holoGroup = new THREE.Group();
-    holoGroup.position.set(0, 0.42, -6.2);
-    holoGroup.visible = false;
-    phoneGroup.add(holoGroup);
-
-    const holoNodeData = [
-      { key:'core', label:'Your Website', x:400, y:280, color:'#d9ac3d', core:true },
-      { key:'pwa', label:'PWA', x:130, y:120, color:'#2f9e6e' },
-      { key:'nextjs', label:'Next.js', x:670, y:120, color:'#4a90d9' },
-      { key:'paystack', label:'Paystack', x:130, y:280, color:'#e0a838' },
-      { key:'render', label:'Render', x:670, y:280, color:'#9b6fd4' },
-      { key:'cloudinary', label:'Cloudinary', x:130, y:440, color:'#50c8e0' },
-      { key:'whatsapp', label:'WhatsApp', x:670, y:440, color:'#4fce5d' }
-    ];
-
-    const diagCanvas = document.createElement('canvas');
-    diagCanvas.width = 800; diagCanvas.height = 560;
-    const dctx = diagCanvas.getContext('2d');
-    const revealedKeys = new Set();
-
-    function drawDiagram(){
-      dctx.fillStyle = '#0b241a';
-      dctx.fillRect(0,0,800,560);
-      dctx.strokeStyle = 'rgba(217,172,61,0.25)';
-      dctx.lineWidth = 2;
-      dctx.strokeRect(6,6,788,548);
-
-      holoNodeData.forEach(function(n){
-        if(n.core || !revealedKeys.has(n.key)) return;
-        dctx.beginPath();
-        dctx.moveTo(400,280);
-        dctx.lineTo(n.x, n.y);
-        dctx.strokeStyle = n.color;
-        dctx.globalAlpha = 0.7;
-        dctx.lineWidth = 3;
-        dctx.stroke();
-        dctx.globalAlpha = 1;
-      });
-      const core = holoNodeData[0];
-      dctx.beginPath();
-      dctx.arc(core.x, core.y, 54, 0, Math.PI*2);
-      dctx.fillStyle = core.color;
-      dctx.fill();
-      dctx.fillStyle = '#0b241a';
-      dctx.font = 'bold 22px sans-serif';
-      dctx.textAlign = 'center';
-      dctx.fillText('Your', core.x, core.y - 4);
-      dctx.fillText('Website', core.x, core.y + 20);
-
-      holoNodeData.forEach(function(n){
-        if(n.core || !revealedKeys.has(n.key)) return;
-        dctx.beginPath();
-        dctx.arc(n.x, n.y, 38, 0, Math.PI*2);
-        dctx.fillStyle = n.color;
-        dctx.fill();
-        dctx.fillStyle = '#0b241a';
-        dctx.font = 'bold 17px sans-serif';
-        dctx.fillText(n.label, n.x, n.y + 6);
-      });
-      diagTexture.needsUpdate = true;
-    }
-
-    const diagTexture = new THREE.CanvasTexture(diagCanvas);
-    const holoPlaneGeo = new THREE.PlaneGeometry(3.4, 2.38);
-    const holoPlaneMat = new THREE.MeshBasicMaterial({ map: diagTexture, transparent:true, opacity:0.95, side: THREE.DoubleSide });
-    const holoPlane = new THREE.Mesh(holoPlaneGeo, holoPlaneMat);
-    holoGroup.add(holoPlane);
-    drawDiagram();
-
-    window.__pleazyHoloNodes = [];
-    window.__pleazyRevealAllNodes = function(){
-      holoNodeData.forEach(function(n){ revealedKeys.add(n.key); });
-      drawDiagram();
-    };
-    window.__pleazyResetNodes = function(){
-      revealedKeys.clear();
-      drawDiagram();
-    };
-    window.__pleazyRevealNode = function(key){
-      revealedKeys.add(key);
-      drawDiagram();
-    };
-    const holoNodeMeshes = [];
-    const holoLineMats = [];
-
-    function makeBeamGradientTexture(){
-      const canvas = document.createElement('canvas');
-      canvas.width = 128; canvas.height = 128;
-      const ctx = canvas.getContext('2d');
-      const grad = ctx.createRadialGradient(64,64,0, 64,64,64);
-      grad.addColorStop(0, 'rgba(240,220,180,0.9)');
-      grad.addColorStop(0.4, 'rgba(217,172,61,0.5)');
-      grad.addColorStop(1, 'rgba(217,172,61,0)');
-      ctx.fillStyle = grad;
-      ctx.fillRect(0,0,128,128);
+      ctx.fillText('P', 256, 470);
+      ctx.strokeStyle = '#d9ac3d'; ctx.lineWidth = 4;
+      ctx.strokeRect(196, 400, 120, 120);
+      ctx.font = '600 34px sans-serif';
+      ctx.fillStyle = '#f6f1e4';
+      ctx.fillText('Pleazy Craft', 256, 580);
+      ctx.font = '20px sans-serif';
+      ctx.fillStyle = '#a9bdb3';
+      ctx.fillText('installed', 256, 615);
       return new THREE.CanvasTexture(canvas);
     }
-    const beamTexture = makeBeamGradientTexture();
+    screenMat.map = makeSplashTexture();
+    screenMat.color.set(0xffffff);
+    screenMat.needsUpdate = true;
 
-    // Anchor beam to the main (largest, bottom) lens, matching real reference photos
-    const mainLensLocal = new THREE.Vector3(camBump.position.x - 0.14, camBump.position.y - 0.30, camBump.position.z - 0.05);
-    const rayGroup = new THREE.Group();
-    phoneGroup.add(rayGroup);
-
-    const beamLength = mainLensLocal.distanceTo(holoGroup.position);
-    const beamGeo = new THREE.ConeGeometry(0.75, beamLength, 32, 1, true);
-    const beamMat = new THREE.MeshBasicMaterial({
-      map: beamTexture, transparent:true, opacity:0, side: THREE.DoubleSide,
-      blending: THREE.AdditiveBlending, depthWrite:false
-    });
-    const beamCone = new THREE.Mesh(beamGeo, beamMat);
-    const dirVec = new THREE.Vector3().subVectors(holoGroup.position, mainLensLocal).normalize();
-    const midpoint = new THREE.Vector3().addVectors(mainLensLocal, holoGroup.position).multiplyScalar(0.5);
-    beamCone.position.copy(midpoint);
-    beamCone.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), dirVec);
-    rayGroup.add(beamCone);
-
-    // Small glowing point right at the lens for the light-source look
-    const lensGlowGeo = new THREE.SphereGeometry(0.09, 16, 16);
-    const lensGlowMat = new THREE.MeshBasicMaterial({ color:0xfff4d6, transparent:true, opacity:0 });
-    const lensGlow = new THREE.Mesh(lensGlowGeo, lensGlowMat);
-    lensGlow.position.copy(mainLensLocal);
-    phoneGroup.add(lensGlow);
-
-    const rayMeshes = [beamMat, lensGlowMat];
-
-    function makeProjectingCanvas(){
-      const canvas = document.createElement('canvas');
-      canvas.width = 512; canvas.height = 1024;
-      const ctx = canvas.getContext('2d');
-      ctx.fillStyle = '#0e2d21';
-      ctx.fillRect(0,0,512,1024);
-      ctx.fillStyle = '#f0d89c';
-      ctx.font = 'bold 44px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('📽️', 256, 460);
-      ctx.font = '600 30px sans-serif';
-      ctx.fillText('Projecting', 256, 540);
-      ctx.fillStyle = '#a9bdb3';
-      ctx.font = '22px sans-serif';
-      ctx.fillText('how it all connects', 256, 580);
-      return canvas;
-    }
-    const projectingTexture = new THREE.CanvasTexture(makeProjectingCanvas());
-
-    let isProjecting = false;
-    let holoScale = 0;
-    let targetHoloScale = 0;
-    let targetCamX = 0, targetCamY = 0, targetCamZ = 5.5;
-    let wasAutoRotating = true;
-    let savedRotationY = -0.4;
-    document.getElementById('projectBtn').addEventListener('click', function(){
-      isProjecting = !isProjecting;
-      targetHoloScale = isProjecting ? 1 : 0;
-      if(isProjecting){ holoGroup.visible = true; }
-      targetCamX = isProjecting ? -3.2 : 0;
-      targetCamY = isProjecting ? 0.8 : 0;
-      targetCamZ = isProjecting ? 4.5 : 5.5;
-
-      if(isProjecting){
-        wasAutoRotating = autoRotate;
-        savedRotationY = phoneGroup.rotation.y;
-        autoRotate = false;
-        phoneGroup.rotation.y = -0.5;
-        phoneGroup.rotation.x = 0.05;
-        screenMat.map = projectingTexture;
+    const screenImages = ['work1.jpg','work2.jpg','work3.jpg','work4.jpg','work5.jpg'];
+    let screenImgIndex = 0;
+    function loadScreenImage(i){
+      texLoader.load(screenImages[i], function(tex){
+        tex.colorSpace = THREE.SRGBColorSpace || tex.colorSpace;
+        screenMat.map = tex;
         screenMat.color.set(0xffffff);
         screenMat.needsUpdate = true;
-        this.textContent = '📽️ Stop projecting';
-        this.style.background = 'var(--gold)';
-        this.style.color = 'var(--ink)';
-      } else {
-        autoRotate = wasAutoRotating;
-        phoneGroup.rotation.y = savedRotationY;
+      });
+    }
+    setTimeout(function(){
+      loadScreenImage(0);
+      setInterval(function(){
+        screenImgIndex = (screenImgIndex + 1) % screenImages.length;
         loadScreenImage(screenImgIndex);
-        this.textContent = '📽️ Project the diagram';
-        this.style.background = 'none';
-        this.style.color = 'var(--gold-light)';
-      }
-    });
+      }, 4000);
+    }, 2200);
 
     phoneGroup.rotation.y = -0.4;
     phoneGroup.rotation.x = 0.08;
@@ -1599,21 +1389,6 @@
     function animatePhone(){
       requestAnimationFrame(animatePhone);
       if(autoRotate){ phoneGroup.rotation.y += 0.004; }
-
-      camera.position.x += (targetCamX - camera.position.x) * 0.05;
-      camera.position.y += (targetCamY - camera.position.y) * 0.05;
-      camera.position.z += (targetCamZ - camera.position.z) * 0.05;
-      camera.lookAt(isProjecting ? -1.5 : 0, isProjecting ? 0.5 : 0, isProjecting ? -3 : 0);
-
-      holoScale += (targetHoloScale - holoScale) * 0.08;
-      holoGroup.scale.set(holoScale, holoScale, holoScale);
-      if(holoScale < 0.01 && !isProjecting){ holoGroup.visible = false; }
-
-      if(isProjecting || holoScale > 0.01){
-        holoTick += 0.03;
-        beamMat.opacity = (0.55 + Math.sin(holoTick*3) * 0.06) * holoScale;
-        lensGlowMat.opacity = (0.9 + Math.sin(holoTick*4) * 0.1) * holoScale;
-      }
 
       renderer.render(scene, camera);
     }
@@ -1736,89 +1511,6 @@
     } catch(e){ console.log('ripple init failed:', e); }
   })();
 
-  // ---- Diagram narration: short vs deep explanation (kept independent so it can't be deleted with 3D code) ----
-  (function initDiagramNarration(){
-    try{
-    const narrateBtn = document.getElementById('diagramNarrateBtn');
-    const orb = document.getElementById('talkingOrb');
-    const depthShortBtn = document.getElementById('depthShort');
-    const depthDeepBtn = document.getElementById('depthDeep');
-    let depth = 'short';
-
-    const explanations = {
-      short: "This shows how Pleazy Craft is built. Your website sits at the center, connected to six tools: P W A, Next dot J S, Paystack, Render, Cloudinary, and WhatsApp — together making one fast, complete website.",
-      deep: "Let's go deeper. P W A means Progressive Web App — it lets your site install to a phone's home screen and work offline, without needing an app store. Next dot J S is the framework — the actual code structure that makes pages load fast and stay organized. Paystack handles payments — customers pay by card or transfer, and money goes straight to your bank. Render is where the website actually lives, on a server that's always on. Cloudinary stores and speeds up your images, so photos load fast even on weak internet. And WhatsApp gives customers a direct line to you, no separate app needed. Each piece does one job well, and together they form a complete, professional website."
-    };
-
-    // Maps each spoken word to the node it should reveal, so nodes appear exactly as they're mentioned
-    const revealMap = {
-      short: [ {word:'website', key:'core'}, {word:'P', key:'pwa'}, {word:'Next', key:'nextjs'}, {word:'Paystack', key:'paystack'}, {word:'Render', key:'render'}, {word:'Cloudinary', key:'cloudinary'}, {word:'WhatsApp', key:'whatsapp'} ],
-      deep: [ {word:'website', key:'core'}, {word:'P', key:'pwa'}, {word:'Next', key:'nextjs'}, {word:'Paystack', key:'paystack'}, {word:'Render', key:'render'}, {word:'Cloudinary', key:'cloudinary'}, {word:'WhatsApp', key:'whatsapp'} ]
-    };
-
-    function speakExplanation(){
-      if(window.__pleazyResetNodes){ window.__pleazyResetNodes(); }
-      const text = explanations[depth];
-      const schedule = revealMap[depth].slice();
-      const utter = new SpeechSynthesisUtterance(text);
-      utter.rate = 0.93; utter.pitch = 1.0;
-      const voices = speechSynthesis.getVoices();
-      const preferredNames = ['Google UK English Female', 'Google US English', 'Microsoft Aria', 'Microsoft Jenny', 'Samantha', 'Karen', 'Moira', 'Natural', 'Neural'];
-      let chosenVoice = null;
-      for(const name of preferredNames){
-        chosenVoice = voices.find(function(v){ return v.name.includes(name); });
-        if(chosenVoice) break;
-      }
-      if(!chosenVoice){ chosenVoice = voices.find(function(v){ return v.lang === 'en-US' || v.lang === 'en-GB'; }); }
-      if(chosenVoice){ utter.voice = chosenVoice; }
-      utter.onstart = function(){ if('vibrate' in navigator){ navigator.vibrate(20); } };
-      utter.onboundary = function(e){
-        orb.style.opacity = '1'; orb.style.transform = 'scale(1.5)';
-        if('vibrate' in navigator){ navigator.vibrate(8); }
-        setTimeout(function(){ orb.style.opacity = '0.5'; orb.style.transform = 'scale(1)'; }, 120);
-
-        // Reveal the next scheduled node once speech reaches its matching word
-        if(schedule.length){
-          const spokenSoFar = text.substring(0, e.charIndex + (e.charLength || 1));
-          const next = schedule[0];
-          if(spokenSoFar.includes(next.word)){
-            if(window.__pleazyRevealNode){ window.__pleazyRevealNode(next.key); }
-            schedule.shift();
-          }
-        }
-      };
-      utter.onend = function(){
-        narrateBtn.textContent = '🔊 Explain this diagram'; orb.style.opacity = '0.3'; orb.style.transform = 'scale(1)';
-        if(window.__pleazyRevealAllNodes){ window.__pleazyRevealAllNodes(); } // safety: ensure everything is visible by the end
-      };
-      speechSynthesis.speak(utter);
-      narrateBtn.textContent = '⏹ Stop';
-    }
-
-    depthShortBtn.addEventListener('click', function(){
-      depth = 'short';
-      depthShortBtn.style.background = 'var(--gold)'; depthShortBtn.style.color = 'var(--ink)'; depthShortBtn.style.border = 'none';
-      depthDeepBtn.style.background = 'none'; depthDeepBtn.style.color = 'var(--muted)'; depthDeepBtn.style.border = '1px solid var(--line)';
-      if(speechSynthesis.speaking){ speechSynthesis.cancel(); speakExplanation(); }
-    });
-    depthDeepBtn.addEventListener('click', function(){
-      depth = 'deep';
-      depthDeepBtn.style.background = 'var(--gold)'; depthDeepBtn.style.color = 'var(--ink)'; depthDeepBtn.style.border = 'none';
-      depthShortBtn.style.background = 'none'; depthShortBtn.style.color = 'var(--muted)'; depthShortBtn.style.border = '1px solid var(--line)';
-      if(speechSynthesis.speaking){ speechSynthesis.cancel(); speakExplanation(); }
-    });
-
-    narrateBtn.addEventListener('click', function(){
-      if(speechSynthesis.speaking){
-        speechSynthesis.cancel();
-        narrateBtn.textContent = '🔊 Explain this diagram';
-        orb.style.opacity = '0.3'; orb.style.transform = 'scale(1)';
-        return;
-      }
-      speakExplanation();
-    });
-    } catch(e){ console.log('narration init failed:', e); }
-  })();
 
   let deferredInstallPrompt = null;
   const installBtn = document.getElementById('installBtn');
