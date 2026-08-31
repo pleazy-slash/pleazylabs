@@ -359,27 +359,32 @@
     <h1>Websites that work like <span>real apps</span>, built for businesses ready to grow.</h1>
     <p class="motto-glow" style="font-style:italic; font-size:15px; margin-bottom:6px; font-weight:600;">"Real work, shown first — built to grow with you."</p>
     <p>Fast, installable, app-like websites with instant online payment — no app store, no download, no complexity for your customers.</p>
-    <p style="font-size:11px; color:var(--muted); margin-bottom:14px;">✨ Tap the phone to reveal its controls</p>
-    <div id="phone3dWrap" style="position:relative; width:100%; max-width:360px; margin:0 auto 8px;">
-      <div id="phone3d" style="width:100%; height:440px; cursor:grab; touch-action:pan-y;"></div>
+
+    <button type="button" id="showDemoBtn" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:12.5px; padding:8px 16px; border-radius:100px; cursor:pointer; margin-top:8px;">✨ See an interactive 3D demo</button>
+
+    <div id="phone3dSection" style="display:none; margin-top:20px;">
+      <p style="font-size:11px; color:var(--muted); margin-bottom:14px;">✨ Tap the phone to reveal its controls</p>
+      <div id="phone3dWrap" style="position:relative; width:100%; max-width:360px; margin:0 auto 8px;">
+        <div id="phone3d" style="width:100%; height:440px; cursor:grab; touch-action:pan-y;"></div>
+      </div>
+
+      <div id="phoneControlsPanel" style="opacity:0; max-height:0; overflow:hidden; transition:opacity .4s ease, max-height .4s ease;">
+        <div style="display:flex; gap:10px; justify-content:center; margin-bottom:6px; margin-top:10px;">
+          <button type="button" id="phonePowerBtn" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:12px; padding:6px 14px; border-radius:100px; cursor:pointer;">⏻ Power</button>
+          <button type="button" id="musicBtn" title="Tap to play/pause, double-tap to change track" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:12px; padding:6px 14px; border-radius:100px; cursor:pointer;">🎵 Calm</button>
+        </div>
+        <p style="font-size:10.5px; color:var(--muted); margin-bottom:12px;">tap music to play/pause · double-tap to change track</p>
+        <div style="display:flex; gap:8px; justify-content:center; margin-bottom:8px;">
+          <button type="button" id="rotateToggleBtn" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:16px; width:36px; height:36px; border-radius:50%; cursor:pointer;">⏸</button>
+          <button type="button" id="zoomOutBtn" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:16px; width:36px; height:36px; border-radius:50%; cursor:pointer;">−</button>
+          <button type="button" id="zoomInBtn" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:16px; width:36px; height:36px; border-radius:50%; cursor:pointer;">+</button>
+        </div>
+        <p style="font-size:11px; color:var(--muted); margin-top:-4px; margin-bottom:16px;">↔ drag to rotate · double-tap phone to zoom</p>
+      </div>
+      <p style="font-size:12px; color:var(--muted); margin-top:16px;">The Pleazy Craft PWA — installed and ready</p>
     </div>
 
-    <div id="phoneControlsPanel" style="opacity:0; max-height:0; overflow:hidden; transition:opacity .4s ease, max-height .4s ease;">
-      <div style="display:flex; gap:10px; justify-content:center; margin-bottom:6px; margin-top:10px;">
-        <button type="button" id="phonePowerBtn" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:12px; padding:6px 14px; border-radius:100px; cursor:pointer;">⏻ Power</button>
-        <button type="button" id="musicBtn" title="Tap to play/pause, double-tap to change track" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:12px; padding:6px 14px; border-radius:100px; cursor:pointer;">🎵 Calm</button>
-      </div>
-      <p style="font-size:10.5px; color:var(--muted); margin-bottom:12px;">tap music to play/pause · double-tap to change track</p>
-      <div style="display:flex; gap:8px; justify-content:center; margin-bottom:8px;">
-        <button type="button" id="rotateToggleBtn" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:16px; width:36px; height:36px; border-radius:50%; cursor:pointer;">⏸</button>
-        <button type="button" id="zoomOutBtn" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:16px; width:36px; height:36px; border-radius:50%; cursor:pointer;">−</button>
-        <button type="button" id="zoomInBtn" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:16px; width:36px; height:36px; border-radius:50%; cursor:pointer;">+</button>
-      </div>
-      <p style="font-size:11px; color:var(--muted); margin-top:-4px; margin-bottom:16px;">↔ drag to rotate · double-tap phone to zoom</p>
-    </div>
-
-    <p style="font-size:12px; color:var(--muted); margin-top:16px;">The Pleazy Craft PWA — installed and ready</p>
-    <div class="hero-ctas">
+    <div class="hero-ctas" style="margin-top:24px;">
       <a href="#" class="btn-primary" id="heroCta">See how it works & get a preview</a>
       <button type="button" class="btn-ghost" id="howBtn" style="border:1px solid var(--line); background:none; font-family:inherit; cursor:pointer;">See how it works</button>
     </div>
@@ -1226,16 +1231,20 @@
     // Real camera photo texture on the back, instead of built geometry
     const camTexLoader = new THREE.TextureLoader();
     const camPlaneGeo = new THREE.PlaneGeometry(w * 0.62, h * 0.62);
-    const camPlaneMat = new THREE.MeshBasicMaterial({ transparent:true, opacity:0 });
+    const camPlaneMat = new THREE.MeshBasicMaterial({ color: 0x1a1e22, transparent:false });
     const camPlane = new THREE.Mesh(camPlaneGeo, camPlaneMat);
     camPlane.position.set(-w/2 + w*0.31, h/2 - h*0.32, -depth/2 - 0.03);
     phoneGroup.add(camPlane);
-    camTexLoader.load('camera_texture.png', function(tex){
-      tex.colorSpace = THREE.SRGBColorSpace || tex.colorSpace;
-      camPlaneMat.map = tex;
-      camPlaneMat.opacity = 1;
-      camPlaneMat.needsUpdate = true;
-    });
+    camTexLoader.load('camera_texture.png',
+      function(tex){
+        tex.colorSpace = THREE.SRGBColorSpace || tex.colorSpace;
+        camPlaneMat.map = tex;
+        camPlaneMat.color.set(0xffffff);
+        camPlaneMat.needsUpdate = true;
+      },
+      undefined,
+      function(){ console.log('camera_texture.png failed to load — check it was deployed alongside index.html'); }
+    );
 
     // Front screen: Pleazy PWA splash, then cycles through real work photos
     const texLoader = new THREE.TextureLoader();
@@ -1274,12 +1283,16 @@
     const screenImages = ['work1.jpg','work2.jpg','work3.jpg','work4.jpg','work5.jpg'];
     let screenImgIndex = 0;
     function loadScreenImage(i){
-      texLoader.load(screenImages[i], function(tex){
-        tex.colorSpace = THREE.SRGBColorSpace || tex.colorSpace;
-        screenMat.map = tex;
-        screenMat.color.set(0xffffff);
-        screenMat.needsUpdate = true;
-      });
+      texLoader.load(screenImages[i],
+        function(tex){
+          tex.colorSpace = THREE.SRGBColorSpace || tex.colorSpace;
+          screenMat.map = tex;
+          screenMat.color.set(0xffffff);
+          screenMat.needsUpdate = true;
+        },
+        undefined,
+        function(){ console.log(screenImages[i] + ' failed to load — check all work photos were deployed'); }
+      );
     }
     setTimeout(function(){
       loadScreenImage(0);
@@ -1514,6 +1527,24 @@
       });
     });
     } catch(e){ console.log('haptics init failed:', e); }
+  })();
+
+  // ---- Show/hide the 3D phone demo (off by default, since not everyone wants it) ----
+  (function initDemoToggle(){
+    try{
+      const btn = document.getElementById('showDemoBtn');
+      const section = document.getElementById('phone3dSection');
+      let shown = false;
+      btn.addEventListener('click', function(){
+        shown = !shown;
+        section.style.display = shown ? 'block' : 'none';
+        btn.textContent = shown ? '✕ Hide the 3D demo' : '✨ See an interactive 3D demo';
+        if(shown){
+          section.scrollIntoView({ behavior:'smooth', block:'nearest' });
+          setTimeout(function(){ window.dispatchEvent(new Event('resize')); }, 50);
+        }
+      });
+    } catch(e){ console.log('demo toggle init failed:', e); }
   })();
 
   // ---- Site-wide button tap haptics ----
