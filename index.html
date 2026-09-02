@@ -4,6 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pleazy Craft — Websites that work like apps</title>
+<meta name="description" content="Pleazy Craft builds fast, installable, app-like websites for businesses ready to grow — free preview first, no cost until you're happy.">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ProfessionalService",
+  "name": "Pleazy Craft",
+  "description": "Fast, installable, app-like websites for businesses ready to grow.",
+  "areaServed": "Nigeria",
+  "priceRange": "Negotiable",
+  "url": "https://pleazy-slash.github.io/pleazylabs/"
+}
+</script>
+
 <link rel="icon" type="image/png" href="logo.png">
 <link rel="apple-touch-icon" href="logo.png">
 <meta name="theme-color" content="#07130f">
@@ -320,6 +333,14 @@
 </head>
 <body>
 
+<noscript>
+  <div style="background:#0e2d21; color:#f6f1e4; padding:40px 24px; text-align:center; font-family:sans-serif;">
+    <h1 style="font-size:22px; margin-bottom:12px;">Pleazy Craft</h1>
+    <p style="margin-bottom:16px;">Fast, installable, app-like websites for businesses ready to grow.</p>
+    <p>Please enable JavaScript to see the full site, or message us directly on WhatsApp: <a href="https://wa.me/2349070911356" style="color:#f0d89c;">+234 907 091 1356</a></p>
+  </div>
+</noscript>
+
 <canvas id="bgCanvas" style="position:fixed; inset:0; z-index:0; pointer-events:none;"></canvas>
 
 
@@ -343,7 +364,7 @@
     </div>
     <div style="display:flex; align-items:center; gap:22px;">
       <a href="#work" style="font-size:14px; font-weight:500; opacity:0.85;">My Work</a>
-      <button type="button" id="themeToggle" style="background:none; border:1px solid var(--line); color:var(--cream); font-size:15px; width:34px; height:34px; border-radius:50%; cursor:pointer;">🌙</button>
+      <button type="button" id="themeToggle" aria-label="Toggle dark or light mode" style="background:none; border:1px solid var(--line); color:var(--cream); font-size:15px; width:34px; height:34px; border-radius:50%; cursor:pointer;">🌙</button>
       <button type="button" id="installBtn" style="display:none; background:none; border:1px solid var(--gold); color:var(--gold-light); font-size:13px; padding:8px 14px; border-radius:100px; cursor:pointer; font-family:inherit;">📲 Install App</button>
       <a href="#" class="nav-cta" id="navCta">See how it works</a>
     </div>
@@ -360,28 +381,15 @@
     <p class="motto-glow" style="font-style:italic; font-size:15px; margin-bottom:6px; font-weight:600;">"Real work, shown first — built to grow with you."</p>
     <p>Fast, installable, app-like websites with instant online payment — no app store, no download, no complexity for your customers.</p>
 
-    <button type="button" id="showDemoBtn" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:12.5px; padding:8px 16px; border-radius:100px; cursor:pointer; margin-top:8px;">✨ See an interactive 3D demo</button>
+    <button type="button" id="showDemoBtn" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:12.5px; padding:8px 16px; border-radius:100px; cursor:pointer; margin-top:8px;">✨ Meet our guide</button>
 
     <div id="phone3dSection" style="display:none; margin-top:20px;">
-      <p style="font-size:11px; color:var(--muted); margin-bottom:14px;">✨ Tap the phone to reveal its controls</p>
-      <div id="phone3dWrap" style="position:relative; width:100%; max-width:360px; margin:0 auto 8px;">
-        <div id="phone3d" style="width:100%; height:440px; cursor:grab; touch-action:pan-y;"></div>
+      <p style="font-size:11px; color:var(--muted); margin-bottom:14px;">↔ drag to rotate · tap to say hi</p>
+      <div id="phone3dWrap" style="position:relative; width:100%; max-width:320px; height:380px; margin:0 auto 8px; cursor:grab; touch-action:pan-y;">
+        <div id="phone3d" style="width:100%; height:100%;"></div>
       </div>
-
-      <div id="phoneControlsPanel" style="opacity:0; max-height:0; overflow:hidden; transition:opacity .4s ease, max-height .4s ease;">
-        <div style="display:flex; gap:10px; justify-content:center; margin-bottom:6px; margin-top:10px;">
-          <button type="button" id="phonePowerBtn" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:12px; padding:6px 14px; border-radius:100px; cursor:pointer;">⏻ Power</button>
-          <button type="button" id="musicBtn" title="Tap to play/pause, double-tap to change track" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:12px; padding:6px 14px; border-radius:100px; cursor:pointer;">🎵 Calm</button>
-        </div>
-        <p style="font-size:10.5px; color:var(--muted); margin-bottom:12px;">tap music to play/pause · double-tap to change track</p>
-        <div style="display:flex; gap:8px; justify-content:center; margin-bottom:8px;">
-          <button type="button" id="rotateToggleBtn" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:16px; width:36px; height:36px; border-radius:50%; cursor:pointer;">⏸</button>
-          <button type="button" id="zoomOutBtn" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:16px; width:36px; height:36px; border-radius:50%; cursor:pointer;">−</button>
-          <button type="button" id="zoomInBtn" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:16px; width:36px; height:36px; border-radius:50%; cursor:pointer;">+</button>
-        </div>
-        <p style="font-size:11px; color:var(--muted); margin-top:-4px; margin-bottom:16px;">↔ drag to rotate · double-tap phone to zoom</p>
-      </div>
-      <p style="font-size:12px; color:var(--muted); margin-top:16px;">The Pleazy Craft PWA — installed and ready</p>
+      <p style="font-size:12px; color:var(--muted); margin-top:12px;">Pleazy — here to explain things as you go</p>
+      <button type="button" id="musicBtn" title="Tap to play/pause, double-tap to change track" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:12px; padding:6px 14px; border-radius:100px; cursor:pointer; margin-top:10px;">🎵 Calm</button>
     </div>
 
     <div class="hero-ctas" style="margin-top:24px;">
@@ -603,7 +611,7 @@
 </div>
 
 <div id="lightbox" style="display:none; position:fixed; inset:0; z-index:300; align-items:center; justify-content:center; padding:20px; background:rgba(0,0,0,0.92);">
-  <button id="lightboxClose" style="position:absolute; top:18px; right:18px; background:none; border:none; color:#fff; font-size:32px; line-height:1; cursor:pointer; z-index:2;">&times;</button>
+  <button id="lightboxClose" aria-label="Close image" style="position:absolute; top:18px; right:18px; background:none; border:none; color:#fff; font-size:32px; line-height:1; cursor:pointer; z-index:2;">&times;</button>
   <button id="lightboxPrev" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); background:rgba(255,255,255,0.1); border:none; color:#fff; font-size:26px; width:44px; height:44px; border-radius:50%; cursor:pointer;">‹</button>
   <img id="lightboxImg" src="" alt="" style="max-width:100%; max-height:90vh; border-radius:12px; object-fit:contain;">
   <button id="lightboxNext" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:rgba(255,255,255,0.1); border:none; color:#fff; font-size:26px; width:44px; height:44px; border-radius:50%; cursor:pointer;">›</button>
@@ -613,7 +621,7 @@
 <div id="howModal" style="display:none; position:fixed; inset:0; z-index:200; align-items:flex-start; justify-content:center; padding:20px; overflow-y:auto;">
   <div id="howOverlay" style="position:fixed; inset:0; background:rgba(0,0,0,0.75); backdrop-filter:blur(4px);"></div>
   <div style="position:relative; background:var(--forest); border:1px solid var(--line); border-radius:20px; max-width:520px; width:100%; padding:30px 24px; margin:20px 0;">
-    <button id="howClose" style="position:absolute; top:14px; right:14px; background:none; border:none; color:var(--muted); font-size:24px; line-height:1; cursor:pointer;">&times;</button>
+    <button id="howClose" aria-label="Close" style="position:absolute; top:14px; right:14px; background:none; border:none; color:var(--muted); font-size:24px; line-height:1; cursor:pointer;">&times;</button>
     <div id="scrollCue" style="position:absolute; bottom:0; left:0; right:0; height:50px; background:linear-gradient(transparent, var(--forest)); border-radius:0 0 20px 20px; display:flex; align-items:flex-end; justify-content:center; padding-bottom:6px; pointer-events:none; transition:opacity .3s ease;">
       <span style="font-size:11px; color:var(--gold-light); animation:bounce 1.5s ease-in-out infinite;">↓ more below</span>
     </div>
@@ -846,6 +854,7 @@
       speechSynthesis.cancel();
       stopAutoScroll();
       readAloudBtn.textContent = '🔊 Read aloud';
+      window.__pleazyCharacterTalking = false;
       return;
     }
     const text = readContent.innerText;
@@ -866,8 +875,8 @@
     if(chosenVoice){ utter.voice = chosenVoice; }
     utter.pitch = 0.92;
 
-    utter.onstart = function(){ startAutoScroll(); };
-    utter.onend = function(){ readAloudBtn.textContent = '🔊 Read aloud'; stopAutoScroll(); };
+    utter.onstart = function(){ startAutoScroll(); window.__pleazyCharacterTalking = true; };
+    utter.onend = function(){ readAloudBtn.textContent = '🔊 Read aloud'; stopAutoScroll(); window.__pleazyCharacterTalking = false; };
     speechSynthesis.cancel(); // clears any queued utterance to reduce startup delay
     speechSynthesis.speak(utter);
     readAloudBtn.textContent = '⏹ Stop';
@@ -937,6 +946,20 @@
       tourProgress.textContent = (i+1) + ' / ' + tourSteps.length;
       tourNext.textContent = (i === tourSteps.length - 1) ? 'Done' : 'Next';
 
+      if('speechSynthesis' in window){
+        speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(step.text);
+        utter.rate = 0.95; utter.pitch = 0.92;
+        const voices = window.__cachedVoices && window.__cachedVoices.length ? window.__cachedVoices : speechSynthesis.getVoices();
+        const preferredNames = ['Google UK English Female', 'Microsoft Aria', 'Microsoft Jenny', 'Samantha', 'Karen', 'Natural'];
+        let v = null;
+        for(const name of preferredNames){ v = voices.find(function(x){ return x.name.includes(name); }); if(v) break; }
+        if(v){ utter.voice = v; }
+        utter.onstart = function(){ window.__pleazyCharacterTalking = true; };
+        utter.onend = function(){ window.__pleazyCharacterTalking = false; };
+        speechSynthesis.speak(utter);
+      }
+
       const boxTop = Math.min(window.innerHeight - 160, Math.max(20, rect.bottom + 16));
       tourBox.style.top = boxTop + 'px';
       tourBox.style.left = Math.max(16, Math.min(window.innerWidth - 296, rect.left)) + 'px';
@@ -960,6 +983,8 @@
     clearHighlight();
     tourOverlay.style.display = 'none';
     tourBox.style.display = 'none';
+    if('speechSynthesis' in window){ speechSynthesis.cancel(); }
+    window.__pleazyCharacterTalking = false;
     localStorage.setItem('pleazyTourSeen', 'true');
   }
 
@@ -1147,7 +1172,7 @@
     }
 
     els.forEach(function(el, idx){
-      el.style.transition = 'opacity .8s cubic-bezier(.2,.7,.3,1), transform .8s cubic-bezier(.2,.7,.3,1), filter .8s ease';
+      el.style.transition = 'opacity .9s cubic-bezier(.2,.7,.3,1), transform .9s cubic-bezier(.2,.7,.3,1), filter .9s ease';
       el.dataset.rot = (idx % 2 === 0) ? '14' : '-14';
     });
 
@@ -1160,17 +1185,17 @@
       entries.forEach(function(entry){
         const el = entry.target;
         if(entry.isIntersecting){
-          // Constructive: piece forms into place, unmistakably
+          // Constructive: pixel energy resolves into a clean, formed piece
           el.style.opacity = '1';
-          el.style.filter = 'blur(0px)';
+          el.style.filter = 'blur(0px) saturate(1) contrast(1)';
           el.style.transform = 'translateY(0) rotate(0deg) scale(1)';
         } else {
-          // Destructive: piece breaks apart and blurs as it leaves
+          // Destructive: piece scatters apart into a hot, blurred burst of energy
           const rot = el.dataset.rot;
           const direction = entry.boundingClientRect.top < 0 ? -1 : 1;
           el.style.opacity = '0';
-          el.style.filter = 'blur(4px)';
-          el.style.transform = 'translateY(' + (direction * 90) + 'px) rotate(' + (direction * rot) + 'deg) scale(0.8)';
+          el.style.filter = 'blur(10px) saturate(2.2) contrast(1.4) brightness(1.3)';
+          el.style.transform = 'translateY(' + (direction * 110) + 'px) rotate(' + (direction * rot) + 'deg) scale(0.7)';
         }
       });
     }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
@@ -1184,133 +1209,85 @@
   })();
 
   // ---- 3D interactive phone banner ----
-  (function initPhone3D(){
+  // ---- 3D Pleazy mascot character: draggable, talks during narration, no external files needed ----
+  (function initCharacter3D(){
     try{
     const container = document.getElementById('phone3d');
     if(!container || typeof THREE === 'undefined') return;
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(35, container.clientWidth / container.clientHeight, 0.1, 100);
-    camera.position.set(0, 0, 5.5);
+    camera.position.set(0, 0.3, 5.5);
 
     const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     container.appendChild(renderer.domElement);
 
-    const light1 = new THREE.DirectionalLight(0xffffff, 1.4);
+    scene.add(new THREE.AmbientLight(0x8899aa, 1.0));
+    const light1 = new THREE.DirectionalLight(0xffffff, 1.3);
     light1.position.set(2, 3, 4);
     scene.add(light1);
-    scene.add(new THREE.AmbientLight(0x8899aa, 0.9));
-    const rim = new THREE.PointLight(0xd9ac3d, 1.2, 10);
+    const rim = new THREE.PointLight(0xd9ac3d, 1.1, 10);
     rim.position.set(-3, 2, 2);
     scene.add(rim);
 
-    const phoneGroup = new THREE.Group();
-    scene.add(phoneGroup);
+    const charGroup = new THREE.Group();
+    scene.add(charGroup);
 
-    // Realistic phone body — rounded edges via extruded shape
-    const w = 1.6, h = 3.2, depth = 0.16, radius = 0.22;
-    const bodyShape = new THREE.Shape();
-    bodyShape.moveTo(-w/2 + radius, -h/2);
-    bodyShape.lineTo(w/2 - radius, -h/2);
-    bodyShape.quadraticCurveTo(w/2, -h/2, w/2, -h/2 + radius);
-    bodyShape.lineTo(w/2, h/2 - radius);
-    bodyShape.quadraticCurveTo(w/2, h/2, w/2 - radius, h/2);
-    bodyShape.lineTo(-w/2 + radius, h/2);
-    bodyShape.quadraticCurveTo(-w/2, h/2, -w/2, h/2 - radius);
-    bodyShape.lineTo(-w/2, -h/2 + radius);
-    bodyShape.quadraticCurveTo(-w/2, -h/2, -w/2 + radius, -h/2);
-
-    const bodyGeo = new THREE.ExtrudeGeometry(bodyShape, { depth: depth, bevelEnabled:true, bevelThickness:0.02, bevelSize:0.015, bevelSegments:3, curveSegments:12 });
-    bodyGeo.center();
-    const bodyMat = new THREE.MeshStandardMaterial({ color: 0x14181a, metalness:0.85, roughness:0.2 });
+    // Body: rounded capsule, Pleazy green "attire"
+    const bodyGeo = new THREE.CapsuleGeometry(0.55, 0.9, 8, 24);
+    const bodyMat = new THREE.MeshStandardMaterial({ color: 0x123a2b, metalness:0.2, roughness:0.55 });
     const body = new THREE.Mesh(bodyGeo, bodyMat);
-    phoneGroup.add(body);
+    body.position.y = -0.1;
+    charGroup.add(body);
 
-    // Real camera photo texture on the back, instead of built geometry
-    const camTexLoader = new THREE.TextureLoader();
-    const camPlaneGeo = new THREE.PlaneGeometry(w * 0.62, h * 0.62);
-    const camPlaneMat = new THREE.MeshBasicMaterial({ color: 0x1a1e22, transparent:false });
-    const camPlane = new THREE.Mesh(camPlaneGeo, camPlaneMat);
-    camPlane.position.set(-w/2 + w*0.31, h/2 - h*0.32, -depth/2 - 0.03);
-    phoneGroup.add(camPlane);
-    camTexLoader.load('camera_texture.png',
-      function(tex){
-        tex.colorSpace = THREE.SRGBColorSpace || tex.colorSpace;
-        camPlaneMat.map = tex;
-        camPlaneMat.color.set(0xffffff);
-        camPlaneMat.needsUpdate = true;
-      },
-      undefined,
-      function(){ console.log('camera_texture.png failed to load — check it was deployed alongside index.html'); }
-    );
+    // Gold collar/trim — "Pleazy Craft attire" detail
+    const collarGeo = new THREE.TorusGeometry(0.56, 0.06, 12, 32);
+    const collarMat = new THREE.MeshStandardMaterial({ color: 0xd9ac3d, metalness:0.7, roughness:0.3 });
+    const collar = new THREE.Mesh(collarGeo, collarMat);
+    collar.rotation.x = Math.PI / 2;
+    collar.position.y = 0.42;
+    charGroup.add(collar);
 
-    // Front screen: Pleazy PWA splash, then cycles through real work photos
-    const texLoader = new THREE.TextureLoader();
-    const screenGeo = new THREE.PlaneGeometry(1.42, 3.0);
-    const screenMat = new THREE.MeshBasicMaterial({ color: 0x0e2d21 });
-    const screen = new THREE.Mesh(screenGeo, screenMat);
-    screen.position.z = 0.09;
-    phoneGroup.add(screen);
+    // Head
+    const headGeo = new THREE.SphereGeometry(0.52, 32, 32);
+    const headMat = new THREE.MeshStandardMaterial({ color: 0xf0d89c, metalness:0.1, roughness:0.6 });
+    const head = new THREE.Mesh(headGeo, headMat);
+    head.position.y = 1.15;
+    charGroup.add(head);
 
-    function makeSplashTexture(){
-      const canvas = document.createElement('canvas');
-      canvas.width = 512; canvas.height = 1024;
-      const ctx = canvas.getContext('2d');
-      const grad = ctx.createLinearGradient(0,0,0,1024);
-      grad.addColorStop(0, '#123a2b'); grad.addColorStop(1, '#0e2d21');
-      ctx.fillStyle = grad;
-      ctx.fillRect(0,0,512,1024);
-      ctx.fillStyle = '#f0d89c';
-      ctx.font = 'bold 64px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('P', 256, 470);
-      ctx.strokeStyle = '#d9ac3d'; ctx.lineWidth = 4;
-      ctx.strokeRect(196, 400, 120, 120);
-      ctx.font = '600 34px sans-serif';
-      ctx.fillStyle = '#f6f1e4';
-      ctx.fillText('Pleazy Craft', 256, 580);
-      ctx.font = '20px sans-serif';
-      ctx.fillStyle = '#a9bdb3';
-      ctx.fillText('installed', 256, 615);
-      return new THREE.CanvasTexture(canvas);
-    }
-    screenMat.map = makeSplashTexture();
-    screenMat.color.set(0xffffff);
-    screenMat.needsUpdate = true;
+    // Eyes
+    const eyeGeo = new THREE.SphereGeometry(0.06, 16, 16);
+    const eyeMat = new THREE.MeshStandardMaterial({ color: 0x14231c });
+    const eyeL = new THREE.Mesh(eyeGeo, eyeMat);
+    eyeL.position.set(-0.18, 1.18, 0.44);
+    charGroup.add(eyeL);
+    const eyeR = new THREE.Mesh(eyeGeo, eyeMat);
+    eyeR.position.set(0.18, 1.18, 0.44);
+    charGroup.add(eyeR);
 
-    const screenImages = ['work1.jpg','work2.jpg','work3.jpg','work4.jpg','work5.jpg'];
-    let screenImgIndex = 0;
-    function loadScreenImage(i){
-      texLoader.load(screenImages[i],
-        function(tex){
-          tex.colorSpace = THREE.SRGBColorSpace || tex.colorSpace;
-          screenMat.map = tex;
-          screenMat.color.set(0xffffff);
-          screenMat.needsUpdate = true;
-        },
-        undefined,
-        function(){ console.log(screenImages[i] + ' failed to load — check all work photos were deployed'); }
-      );
-    }
-    setTimeout(function(){
-      loadScreenImage(0);
-      setInterval(function(){
-        screenImgIndex = (screenImgIndex + 1) % screenImages.length;
-        loadScreenImage(screenImgIndex);
-      }, 4000);
-    }, 2200);
+    // Mouth — small arc, animates while talking
+    const mouthGeo = new THREE.PlaneGeometry(0.22, 0.06);
+    const mouthMat = new THREE.MeshBasicMaterial({ color:0x8a4a2a, side:THREE.DoubleSide });
+    const mouth = new THREE.Mesh(mouthGeo, mouthMat);
+    mouth.position.set(0, 0.98, 0.5);
+    charGroup.add(mouth);
 
-    phoneGroup.rotation.y = -0.4;
-    phoneGroup.rotation.x = 0.08;
+    // Small "P" badge on chest
+    const badgeGeo = new THREE.CircleGeometry(0.14, 24);
+    const badgeMat = new THREE.MeshStandardMaterial({ color:0xd9ac3d, metalness:0.6, roughness:0.3 });
+    const badge = new THREE.Mesh(badgeGeo, badgeMat);
+    badge.position.set(0, 0.05, 0.54);
+    charGroup.add(badge);
 
+    charGroup.rotation.y = -0.3;
+    charGroup.position.y = -0.3;
+
+    // ---- Drag to rotate, tap for reaction (sound + vibration + ripple) ----
     let autoRotate = true;
-    let isDragging = false;
-    let dragMoved = false;
-    let isZoomed = false;
-    let prevX = 0, prevY = 0;
-    let downX = 0, downY = 0;
+    let isDragging = false, dragMoved = false;
+    let downX=0, downY=0, prevX=0, prevY=0;
 
     function playTapSound(){
       try{
@@ -1318,127 +1295,84 @@
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(700, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 0.08);
-        gain.gain.setValueAtTime(0.12, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+        osc.frequency.setValueAtTime(600, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(320, ctx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.1, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.14);
         osc.connect(gain); gain.connect(ctx.destination);
-        osc.start(); osc.stop(ctx.currentTime + 0.12);
+        osc.start(); osc.stop(ctx.currentTime + 0.14);
       } catch(e){}
     }
-
-    function vibrateShort(){
-      if('vibrate' in navigator){ navigator.vibrate(15); }
-    }
-
     const phone3dWrap = document.getElementById('phone3dWrap');
-    function createRipple(x, y, isDouble){
+    function createRipple(x, y){
       const rect = phone3dWrap.getBoundingClientRect();
       const ripple = document.createElement('div');
       ripple.className = 'water-ripple';
-      const size = isDouble ? 140 : 90;
-      ripple.style.width = size + 'px';
-      ripple.style.height = size + 'px';
+      ripple.style.width = '90px'; ripple.style.height = '90px';
       ripple.style.left = (x - rect.left) + 'px';
       ripple.style.top = (y - rect.top) + 'px';
-      if(isDouble){
-        ripple.style.borderColor = 'rgba(47,158,110,0.7)';
-        ripple.style.background = 'radial-gradient(circle, rgba(47,158,110,0.2), transparent 70%)';
-      }
       phone3dWrap.appendChild(ripple);
       setTimeout(function(){ ripple.remove(); }, 900);
     }
 
-    let lastTapTime = 0;
-    const controlsPanel = document.getElementById('phoneControlsPanel');
-    let controlsVisible = false;
-
-    function toggleControls(){
-      controlsVisible = !controlsVisible;
-      controlsPanel.style.opacity = controlsVisible ? '1' : '0';
-      controlsPanel.style.maxHeight = controlsVisible ? '260px' : '0';
-    }
-
-    function handleZoom(){
-      isZoomed = !isZoomed;
-      camera.position.z = isZoomed ? 3.5 : 5.5;
-      autoRotate = !isZoomed ? true : false;
-    }
-
-    function handleTap(x, y){
-      playTapSound();
-      vibrateShort();
-      const now = Date.now();
-      const isDouble = now - lastTapTime < 320;
-      createRipple(x, y, isDouble);
-      if(isDouble){
-        handleZoom();
-      } else {
-        toggleControls();
-      }
-      lastTapTime = now;
-    }
-
-    const rotateToggleBtn = document.getElementById('rotateToggleBtn');
-    rotateToggleBtn.addEventListener('click', function(){
-      autoRotate = !autoRotate;
-      rotateToggleBtn.textContent = autoRotate ? '⏸' : '▶';
-    });
-
-    document.getElementById('zoomInBtn').addEventListener('click', function(){
-      camera.position.z = Math.max(2.5, camera.position.z - 0.6);
-    });
-    document.getElementById('zoomOutBtn').addEventListener('click', function(){
-      camera.position.z = Math.min(8, camera.position.z + 0.6);
-    });
-
-    function onDown(x, y){ isDragging = true; dragMoved = false; downX = x; downY = y; prevX = x; prevY = y; container.style.cursor = 'grabbing'; }
+    let waveTime = 0;
+    function onDown(x, y){ isDragging = true; dragMoved = false; downX=x; downY=y; prevX=x; prevY=y; container.style.cursor='grabbing'; }
     function onMove(x, y){
       if(!isDragging) return;
-      const dx = x - prevX, dy = y - prevY;
-      if(Math.abs(x - downX) > 4 || Math.abs(y - downY) > 4){ dragMoved = true; autoRotate = false; }
-      phoneGroup.rotation.y += dx * 0.01;
-      phoneGroup.rotation.x += dy * 0.006;
+      if(Math.abs(x-downX) > 4 || Math.abs(y-downY) > 4){ dragMoved = true; autoRotate = false; }
+      charGroup.rotation.y += (x - prevX) * 0.01;
       prevX = x; prevY = y;
     }
-    function onUp(){
+    function onUp(x, y){
       isDragging = false;
       container.style.cursor = 'grab';
-      if(!dragMoved){ handleTap(downX, downY); }
+      if(!dragMoved){
+        playTapSound();
+        if('vibrate' in navigator){ navigator.vibrate(15); }
+        createRipple(x, y);
+        waveTime = 1.2; // trigger a little wave/bounce reaction
+      }
     }
-
     container.addEventListener('mousedown', function(e){ onDown(e.clientX, e.clientY); });
     window.addEventListener('mousemove', function(e){ onMove(e.clientX, e.clientY); });
-    window.addEventListener('mouseup', onUp);
-    container.addEventListener('touchstart', function(e){ const t = e.touches[0]; onDown(t.clientX, t.clientY); }, {passive:true});
-    container.addEventListener('touchmove', function(e){ const t = e.touches[0]; onMove(t.clientX, t.clientY); }, {passive:true});
-    container.addEventListener('touchend', onUp);
+    window.addEventListener('mouseup', function(e){ onUp(e.clientX, e.clientY); });
+    container.addEventListener('touchstart', function(e){ const t=e.touches[0]; onDown(t.clientX, t.clientY); }, {passive:true});
+    container.addEventListener('touchmove', function(e){ const t=e.touches[0]; onMove(t.clientX, t.clientY); }, {passive:true});
+    container.addEventListener('touchend', function(e){ const t=e.changedTouches[0]; onUp(t.clientX, t.clientY); });
 
-    let holoTick = 0;
-    function animatePhone(){
-      requestAnimationFrame(animatePhone);
-      if(autoRotate){ phoneGroup.rotation.y += 0.004; }
+    // ---- Talking animation: hooks into the site's existing narration (Learn More modal read-aloud) ----
+    window.__pleazyCharacterTalking = false;
+    let talkTick = 0;
+
+    function animate(){
+      requestAnimationFrame(animate);
+      if(autoRotate){ charGroup.rotation.y += 0.004; }
+
+      if(window.__pleazyCharacterTalking){
+        talkTick += 0.25;
+        const mouthOpen = 0.5 + Math.abs(Math.sin(talkTick)) * 0.5;
+        mouth.scale.y = mouthOpen;
+        head.position.y = 1.15 + Math.sin(talkTick*0.7) * 0.02;
+        charGroup.position.y = -0.3 + Math.sin(talkTick*0.5) * 0.03;
+      } else {
+        mouth.scale.y = 1;
+      }
+
+      if(waveTime > 0){
+        waveTime -= 0.016;
+        charGroup.position.y = -0.3 + Math.sin(waveTime*10) * 0.08 * waveTime;
+      }
 
       renderer.render(scene, camera);
     }
-    animatePhone();
+    animate();
 
     window.addEventListener('resize', function(){
       camera.aspect = container.clientWidth / container.clientHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(container.clientWidth, container.clientHeight);
     });
-
-    let phoneOn = true;
-    document.getElementById('phonePowerBtn').addEventListener('click', function(){
-      phoneOn = !phoneOn;
-      container.style.opacity = phoneOn ? '1' : '0.15';
-      container.style.filter = phoneOn ? 'none' : 'grayscale(1) brightness(0.4)';
-      this.textContent = phoneOn ? '⏻ Power' : '⏻ Off';
-      this.style.color = phoneOn ? 'var(--muted)' : 'var(--gold)';
-      autoRotate = phoneOn;
-    });
-    } catch(e){ console.log('feature init failed:', e); }
+    } catch(e){ console.log('character init failed:', e); }
   })();
 
   // ---- Ambient background sound (off by default, user-controlled, multiple tracks) ----
