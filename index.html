@@ -82,7 +82,10 @@
   }
   nav .wrap{
     display:flex; align-items:center; justify-content:space-between;
-    height:64px;
+    flex-wrap:wrap;
+    gap:8px;
+    min-height:64px;
+    padding-top:8px; padding-bottom:8px;
   }
   .nav-logo{display:flex; align-items:center; gap:10px; font-weight:600; font-size:15px;}
   .nav-logo svg{height:26px; width:auto;}
@@ -328,6 +331,9 @@
     .grid-3{grid-template-columns:1fr;}
     .hero{padding:90px 0 70px;}
   }
+  @media (max-width:400px){
+    .nav-work-link{display:none;}
+  }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
@@ -362,11 +368,11 @@
       <img src="logo.png" alt="Pleazy Craft" style="height:28px; width:auto;">
       Pleazy Craft
     </div>
-    <div style="display:flex; align-items:center; gap:22px;">
-      <a href="#work" style="font-size:14px; font-weight:500; opacity:0.85;">My Work</a>
-      <button type="button" id="themeToggle" aria-label="Toggle dark or light mode" style="background:none; border:1px solid var(--line); color:var(--cream); font-size:15px; width:34px; height:34px; border-radius:50%; cursor:pointer;">🌙</button>
-      <button type="button" id="installBtn" style="display:none; background:none; border:1px solid var(--gold); color:var(--gold-light); font-size:13px; padding:8px 14px; border-radius:100px; cursor:pointer; font-family:inherit;">📲 Install App</button>
-      <a href="#" class="nav-cta" id="navCta">See how it works</a>
+    <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:flex-end;">
+      <a href="#work" class="nav-work-link" style="font-size:14px; font-weight:500; opacity:0.85;">My Work</a>
+      <button type="button" id="themeToggle" aria-label="Toggle dark or light mode" style="background:none; border:1px solid var(--line); color:var(--cream); font-size:15px; width:34px; height:34px; border-radius:50%; cursor:pointer; flex-shrink:0;">🌙</button>
+      <button type="button" id="installBtn" style="display:none; background:none; border:1px solid var(--gold); color:var(--gold-light); font-size:12px; padding:7px 12px; border-radius:100px; cursor:pointer; font-family:inherit; flex-shrink:0;">📲 Install</button>
+      <a href="#" class="nav-cta" id="navCta" style="white-space:nowrap;">See how it works</a>
     </div>
   </div>
 </nav>
