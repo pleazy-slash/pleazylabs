@@ -335,7 +335,6 @@
     .nav-work-link{display:none;}
   }
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
 
@@ -387,6 +386,10 @@
     <p class="motto-glow" style="font-style:italic; font-size:15px; margin-bottom:6px; font-weight:600;">"Real work, shown first — built to grow with you."</p>
     <p>Fast, installable, app-like websites with instant online payment — no app store, no download, no complexity for your customers.</p>
 
+    <div style="display:flex; gap:8px; justify-content:center; margin-top:14px; margin-bottom:2px;">
+      <button type="button" id="voiceFemaleBtn" style="background:var(--gold); color:var(--ink); border:none; font-size:12px; padding:6px 14px; border-radius:100px; cursor:pointer; font-weight:600;">👩 Female voice</button>
+      <button type="button" id="voiceMaleBtn" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:12px; padding:6px 14px; border-radius:100px; cursor:pointer;">👨 Male voice</button>
+    </div>
     <button type="button" id="showDemoBtn" style="background:none; border:1px solid var(--line); color:var(--muted); font-size:12.5px; padding:8px 16px; border-radius:100px; cursor:pointer; margin-top:8px;">✨ Meet our guide</button>
 
     <div id="phone3dSection" style="display:none; margin-top:20px;">
@@ -705,6 +708,48 @@
 </div>
 
 <script>
+  // ---- Shared voice preference (male/female), used by every narration system ----
+  window.__pleazyVoiceGender = localStorage.getItem('pleazyVoiceGender') || 'female';
+  function getPreferredVoice(){
+    const voices = window.__cachedVoices && window.__cachedVoices.length ? window.__cachedVoices : (('speechSynthesis' in window) ? speechSynthesis.getVoices() : []);
+    const femaleNames = ['Google UK English Female', 'Microsoft Aria', 'Microsoft Jenny', 'Samantha', 'Karen', 'Moira', 'Zira', 'Female'];
+    const maleNames = ['Google UK English Male', 'Microsoft Guy', 'Microsoft David', 'Daniel', 'Alex', 'Fred', 'Male'];
+    const wanted = window.__pleazyVoiceGender === 'male' ? maleNames : femaleNames;
+    let chosen = null;
+    for(const name of wanted){
+      chosen = voices.find(function(v){ return v.name.includes(name); });
+      if(chosen) break;
+    }
+    if(!chosen){ chosen = voices.find(function(v){ return v.lang === 'en-US' || v.lang === 'en-GB'; }); }
+    return chosen;
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    const femaleBtn = document.getElementById('voiceFemaleBtn');
+    const maleBtn = document.getElementById('voiceMaleBtn');
+    if(!femaleBtn || !maleBtn) return;
+    function updateVoiceButtons(){
+      const isFemale = window.__pleazyVoiceGender === 'female';
+      femaleBtn.style.background = isFemale ? 'var(--gold)' : 'none';
+      femaleBtn.style.color = isFemale ? 'var(--ink)' : 'var(--muted)';
+      femaleBtn.style.border = isFemale ? 'none' : '1px solid var(--line)';
+      maleBtn.style.background = !isFemale ? 'var(--gold)' : 'none';
+      maleBtn.style.color = !isFemale ? 'var(--ink)' : 'var(--muted)';
+      maleBtn.style.border = !isFemale ? 'none' : '1px solid var(--line)';
+    }
+    updateVoiceButtons();
+    femaleBtn.addEventListener('click', function(){
+      window.__pleazyVoiceGender = 'female';
+      localStorage.setItem('pleazyVoiceGender', 'female');
+      updateVoiceButtons();
+    });
+    maleBtn.addEventListener('click', function(){
+      window.__pleazyVoiceGender = 'male';
+      localStorage.setItem('pleazyVoiceGender', 'male');
+      updateVoiceButtons();
+    });
+  });
+
   // ---- Pre-load speech voices early so read-aloud picks a good voice on first tap ----
   if('speechSynthesis' in window){
     window.__cachedVoices = speechSynthesis.getVoices();
@@ -867,19 +912,10 @@
     const utter = new SpeechSynthesisUtterance(text);
     utter.rate = Math.min(0.92, parseFloat(document.getElementById('speedSlider').value));
     utter.volume = parseFloat(document.getElementById('volumeSlider').value);
-    utter.pitch = 0.92;
+    utter.pitch = window.__pleazyVoiceGender === 'male' ? 0.85 : 0.95;
 
-    // Pick the calmest, most natural-sounding available voice
-    const voices = window.__cachedVoices && window.__cachedVoices.length ? window.__cachedVoices : speechSynthesis.getVoices();
-    const preferredNames = ['Google UK English Female', 'Microsoft Aria', 'Microsoft Jenny', 'Google US English', 'Samantha', 'Karen', 'Moira', 'Natural', 'Neural'];
-    let chosenVoice = null;
-    for(const name of preferredNames){
-      chosenVoice = voices.find(function(v){ return v.name.includes(name); });
-      if(chosenVoice) break;
-    }
-    if(!chosenVoice){ chosenVoice = voices.find(function(v){ return v.lang === 'en-US' || v.lang === 'en-GB'; }); }
+    const chosenVoice = getPreferredVoice();
     if(chosenVoice){ utter.voice = chosenVoice; }
-    utter.pitch = 0.92;
 
     utter.onstart = function(){ startAutoScroll(); window.__pleazyCharacterTalking = true; };
     utter.onend = function(){ readAloudBtn.textContent = '🔊 Read aloud'; stopAutoScroll(); window.__pleazyCharacterTalking = false; };
@@ -955,11 +991,8 @@
       if('speechSynthesis' in window){
         speechSynthesis.cancel();
         const utter = new SpeechSynthesisUtterance(step.text);
-        utter.rate = 0.95; utter.pitch = 0.92;
-        const voices = window.__cachedVoices && window.__cachedVoices.length ? window.__cachedVoices : speechSynthesis.getVoices();
-        const preferredNames = ['Google UK English Female', 'Microsoft Aria', 'Microsoft Jenny', 'Samantha', 'Karen', 'Natural'];
-        let v = null;
-        for(const name of preferredNames){ v = voices.find(function(x){ return x.name.includes(name); }); if(v) break; }
+        utter.rate = 0.95; utter.pitch = window.__pleazyVoiceGender === 'male' ? 0.85 : 0.92;
+        const v = getPreferredVoice();
         if(v){ utter.voice = v; }
         utter.onstart = function(){ window.__pleazyCharacterTalking = true; };
         utter.onend = function(){ window.__pleazyCharacterTalking = false; };
@@ -1216,7 +1249,7 @@
 
   // ---- 3D interactive phone banner ----
   // ---- 3D Pleazy mascot character: draggable, talks during narration, no external files needed ----
-  (function initCharacter3D(){
+  function initCharacter3D(){
     try{
     const container = document.getElementById('phone3d');
     if(!container || typeof THREE === 'undefined') return;
@@ -1379,7 +1412,7 @@
       renderer.setSize(container.clientWidth, container.clientHeight);
     });
     } catch(e){ console.log('character init failed:', e); }
-  })();
+  }
 
   // ---- Ambient background sound (off by default, user-controlled, multiple tracks) ----
   (function initAmbientMusic(){
@@ -1469,16 +1502,45 @@
     } catch(e){ console.log('haptics init failed:', e); }
   })();
 
-  // ---- Show/hide the 3D phone demo (off by default, since not everyone wants it) ----
+  // ---- Show/hide the 3D character guide (loads Three.js only when actually requested) ----
   (function initDemoToggle(){
     try{
       const btn = document.getElementById('showDemoBtn');
       const section = document.getElementById('phone3dSection');
       let shown = false;
+      let loaded = false;
+      let loading = false;
+
+      function afterThreeReady(){
+        loaded = true;
+        initCharacter3D();
+        section.style.display = 'block';
+        section.scrollIntoView({ behavior:'smooth', block:'nearest' });
+        setTimeout(function(){ window.dispatchEvent(new Event('resize')); }, 50);
+      }
+
       btn.addEventListener('click', function(){
+        if(!loaded){
+          if(loading) return;
+          loading = true;
+          btn.textContent = 'Loading…';
+          const script = document.createElement('script');
+          script.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+          script.onload = function(){
+            afterThreeReady();
+            shown = true;
+            btn.textContent = '✕ Hide our guide';
+          };
+          script.onerror = function(){
+            btn.textContent = 'Could not load — try again';
+            loading = false;
+          };
+          document.head.appendChild(script);
+          return;
+        }
         shown = !shown;
         section.style.display = shown ? 'block' : 'none';
-        btn.textContent = shown ? '✕ Hide the 3D demo' : '✨ See an interactive 3D demo';
+        btn.textContent = shown ? '✕ Hide our guide' : '✨ Meet our guide';
         if(shown){
           section.scrollIntoView({ behavior:'smooth', block:'nearest' });
           setTimeout(function(){ window.dispatchEvent(new Event('resize')); }, 50);
