@@ -1370,6 +1370,18 @@
         if('vibrate' in navigator){ navigator.vibrate(15); }
         createRipple(x, y);
         waveTime = 1.2; // trigger a little wave/bounce reaction
+
+        if('speechSynthesis' in window && !speechSynthesis.speaking){
+          const greetings = ["Hi there! I'm Pleazy.", "Hey! Need any help?", "Hello! Happy to explain anything."];
+          const line = greetings[Math.floor(Math.random() * greetings.length)];
+          const utter = new SpeechSynthesisUtterance(line);
+          utter.rate = 1.0; utter.pitch = window.__pleazyVoiceGender === 'male' ? 0.85 : 0.95;
+          const v = typeof getPreferredVoice === 'function' ? getPreferredVoice() : null;
+          if(v){ utter.voice = v; }
+          utter.onstart = function(){ window.__pleazyCharacterTalking = true; };
+          utter.onend = function(){ window.__pleazyCharacterTalking = false; };
+          speechSynthesis.speak(utter);
+        }
       }
     }
     container.addEventListener('mousedown', function(e){ onDown(e.clientX, e.clientY); });
@@ -1513,8 +1525,8 @@
 
       function afterThreeReady(){
         loaded = true;
-        initCharacter3D();
         section.style.display = 'block';
+        initCharacter3D();
         section.scrollIntoView({ behavior:'smooth', block:'nearest' });
         setTimeout(function(){ window.dispatchEvent(new Event('resize')); }, 50);
       }
