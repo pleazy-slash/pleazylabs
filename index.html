@@ -1274,12 +1274,30 @@
     const charGroup = new THREE.Group();
     scene.add(charGroup);
 
-    // Body: rounded capsule, Pleazy green "attire"
-    const bodyGeo = new THREE.CapsuleGeometry(0.55, 0.9, 8, 24);
+    // Body: rounded capsule shape built from a cylinder + two dome caps
+    // (avoids THREE.CapsuleGeometry, which does not exist in the r128 build we load)
     const bodyMat = new THREE.MeshStandardMaterial({ color: 0x123a2b, metalness:0.2, roughness:0.55 });
-    const body = new THREE.Mesh(bodyGeo, bodyMat);
-    body.position.y = -0.1;
-    charGroup.add(body);
+    const bodyGroup = new THREE.Group();
+
+    const bodyCyl = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 0.9, 24, 1, true), bodyMat);
+    bodyGroup.add(bodyCyl);
+
+    const capTop = new THREE.Mesh(
+      new THREE.SphereGeometry(0.55, 24, 16, 0, Math.PI * 2, 0, Math.PI / 2),
+      bodyMat
+    );
+    capTop.position.y = 0.45;
+    bodyGroup.add(capTop);
+
+    const capBottom = new THREE.Mesh(
+      new THREE.SphereGeometry(0.55, 24, 16, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2),
+      bodyMat
+    );
+    capBottom.position.y = -0.45;
+    bodyGroup.add(capBottom);
+
+    bodyGroup.position.y = -0.1;
+    charGroup.add(bodyGroup);
 
     // Gold collar/trim — "Pleazy Craft attire" detail
     const collarGeo = new THREE.TorusGeometry(0.56, 0.06, 12, 32);
